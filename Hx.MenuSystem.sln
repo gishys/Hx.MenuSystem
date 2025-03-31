@@ -1,0 +1,61 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34316.72
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hx.MenuSystem", "Hx.MenuSystem.csproj", "{A8419E6A-BBB8-4A79-BEB2-733F1211537A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hx.MenuSystem.Domain", "Hx.MenuSystem.Domain\Hx.MenuSystem.Domain.csproj", "{F21A0D0A-73D5-4486-95FA-22E3B1BD42AE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hx.MenuSystem.Domain.Shared", "..\Hx.MenuSystem.Domain.Shared\Hx.MenuSystem.Domain.Shared.csproj", "{C322BE46-2667-4C73-99F2-2EB05CBCA6E4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hx.MenuSystem.EntityFrameworkCore", "..\Hx.MenuSystem.EntityFrameworkCore\Hx.MenuSystem.EntityFrameworkCore.csproj", "{63F5F594-9FF5-4D02-A7D0-3AC502AEE87A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hx.MenuSystem.Application", "..\Hx.MenuSystem.Application\Hx.MenuSystem.Application.csproj", "{194F540D-213B-460B-B534-20A62954DA38}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hx.MenuSystem.Application.Contracts", "..\Hx.MenuSystem.Application.Contracts\Hx.MenuSystem.Application.Contracts.csproj", "{52E07E9E-3F72-46D6-A7BF-396FB23047CD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hx.MenuSystem.Migrations", "..\Hx.MenuSystem.Migrations\Hx.MenuSystem.Migrations.csproj", "{42E86195-A473-4314-A890-312C635693A2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A8419E6A-BBB8-4A79-BEB2-733F1211537A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A8419E6A-BBB8-4A79-BEB2-733F1211537A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A8419E6A-BBB8-4A79-BEB2-733F1211537A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A8419E6A-BBB8-4A79-BEB2-733F1211537A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F21A0D0A-73D5-4486-95FA-22E3B1BD42AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F21A0D0A-73D5-4486-95FA-22E3B1BD42AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F21A0D0A-73D5-4486-95FA-22E3B1BD42AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F21A0D0A-73D5-4486-95FA-22E3B1BD42AE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C322BE46-2667-4C73-99F2-2EB05CBCA6E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C322BE46-2667-4C73-99F2-2EB05CBCA6E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C322BE46-2667-4C73-99F2-2EB05CBCA6E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C322BE46-2667-4C73-99F2-2EB05CBCA6E4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{63F5F594-9FF5-4D02-A7D0-3AC502AEE87A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{63F5F594-9FF5-4D02-A7D0-3AC502AEE87A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{63F5F594-9FF5-4D02-A7D0-3AC502AEE87A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{63F5F594-9FF5-4D02-A7D0-3AC502AEE87A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{194F540D-213B-460B-B534-20A62954DA38}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{194F540D-213B-460B-B534-20A62954DA38}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{194F540D-213B-460B-B534-20A62954DA38}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{194F540D-213B-460B-B534-20A62954DA38}.Release|Any CPU.Build.0 = Release|Any CPU
+		{52E07E9E-3F72-46D6-A7BF-396FB23047CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{52E07E9E-3F72-46D6-A7BF-396FB23047CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{52E07E9E-3F72-46D6-A7BF-396FB23047CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{52E07E9E-3F72-46D6-A7BF-396FB23047CD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{42E86195-A473-4314-A890-312C635693A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{42E86195-A473-4314-A890-312C635693A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{42E86195-A473-4314-A890-312C635693A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{42E86195-A473-4314-A890-312C635693A2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {9A3729EF-B48D-4784-A5B6-90436C589816}
+	EndGlobalSection
+EndGlobal
