@@ -1,6 +1,4 @@
-﻿//using Hx.Abp.DataQualityInspection.Application;
-//using Hx.Abp.DataQualityInspection.Application.Contracts;
-//using Hx.Abp.DataQualityInspection.EntityFrameworkCore;
+﻿using Hx.MenuSystem.Application;
 using Microsoft.OpenApi.Models;
 using Volo.Abp;
 using Volo.Abp.AspNetCore.Mvc;
@@ -9,6 +7,7 @@ using Volo.Abp.Modularity;
 
 namespace Hx.MenuSystem
 {
+    [DependsOn(typeof(MenuSystemApplicationModule))]
     [DependsOn(typeof(AbpAutofacModule))]
     [DependsOn(typeof(AbpAspNetCoreMvcModule))]
     public class AppModule : AbpModule
@@ -24,7 +23,7 @@ namespace Hx.MenuSystem
             });
             Configure<AbpAspNetCoreMvcOptions>(options =>
             {
-                //options.ConventionalControllers.Create(typeof(HxAbpDataQualityInspectionApplicationModule).Assembly);
+                options.ConventionalControllers.Create(typeof(MenuSystemApplicationModule).Assembly);
             });
         }
         public override void OnApplicationInitialization(ApplicationInitializationContext context)

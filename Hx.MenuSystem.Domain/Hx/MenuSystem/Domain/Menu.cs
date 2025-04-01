@@ -18,7 +18,7 @@ namespace Hx.MenuSystem.Domain
         public virtual string DisplayName { get; private set; }
 
         [StringLength(MenuConsts.MaxIconLength)]
-        public virtual string Icon { get; private set; }
+        public virtual string? Icon { get; private set; }
 
         [StringLength(MenuConsts.MaxRouteLength)]
         public string Route { get; private set; }
@@ -47,7 +47,7 @@ namespace Hx.MenuSystem.Domain
             string route,
             string appName,
             string permissionName,
-            string icon,
+            string? icon,
             int order,
             Guid? parentId = null,
             Guid? appFormId = null)
@@ -56,7 +56,7 @@ namespace Hx.MenuSystem.Domain
             SetDisplayName(displayName);
             SetRoute(route);
             SetAppName(appName);
-            SetIcon(icon);
+            Icon = icon;
             SetPermissionName(permissionName);
             AppFormId = appFormId;
             ParentId = parentId;
@@ -70,23 +70,23 @@ namespace Hx.MenuSystem.Domain
         }
         public void SetRoute(string route)
         {
-            Name = Check.NotNullOrWhiteSpace(route, nameof(route));
+            Route = Check.NotNullOrWhiteSpace(route, nameof(route));
         }
         public void SetAppName(string appName)
         {
-            Name = Check.NotNullOrWhiteSpace(appName, nameof(appName));
+            AppName = Check.NotNullOrWhiteSpace(appName, nameof(appName));
         }
         public void SetPermissionName(string permissionName)
         {
-            Name = Check.NotNullOrWhiteSpace(permissionName, nameof(permissionName));
+            PermissionName = Check.NotNullOrWhiteSpace(permissionName, nameof(permissionName));
         }
         public void SetIcon(string icon)
         {
-            Name = Check.NotNullOrWhiteSpace(icon, nameof(icon));
+            Icon = icon;
         }
         public void SetDisplayName(string displayName)
         {
-            Name = Check.NotNullOrWhiteSpace(displayName, nameof(displayName));
+            DisplayName = Check.NotNullOrWhiteSpace(displayName, nameof(displayName));
         }
     }
 }

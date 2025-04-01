@@ -16,6 +16,6 @@ namespace Hx.MenuSystem.Domain
             Order = order;
         }
 
-        public override object[] GetKeys() => new object[] { UserId, MenuId };
+        public override object[] GetKeys() => [UserId, MenuId];
     }
 }
