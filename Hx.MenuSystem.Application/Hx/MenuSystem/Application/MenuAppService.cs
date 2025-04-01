@@ -29,6 +29,11 @@ namespace Hx.MenuSystem.Application
             var menus = await _menuRepository.GetListByUserIdAsync(userId);
             return ConvertToMenuTree(menus);
         }
+        public async Task<List<MenuDto>> GetMenusByAppNameAsync(string appName)
+        {
+            var menus = await _menuRepository.FindByAppNameAsync(appName, CurrentTenant.Id);
+            return ConvertToMenuTree(menus);
+        }
         public async Task<MenuDto> AddMenuUsersAsync(CreateOrUpdateMenuUserDto input)
         {
             var menu = await _menuRepository.GetAsync(input.MenuId);

@@ -25,10 +25,17 @@ namespace Hx.MenuSystem.EntityFrameworkCore
         {
             var dbContext = await GetDbContextAsync();
             var query = from menu in dbContext.Menus
-                        where menu.Name == name
+                        where menu.Name == name && menu.TenantId == tenantId
                         select menu;
             return await query.FirstOrDefaultAsync();
         }
+        public async Task<List<Menu>> FindByAppNameAsync(string appName, Guid? tenantId)
+        {
+            var dbContext = await GetDbContextAsync();
+            var query = from menu in dbContext.Menus
+                        where menu.AppName == appName && menu.TenantId == tenantId
+                        select menu;
+            return await query.ToListAsync();
+        }
     }
-
 }
