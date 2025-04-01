@@ -8,7 +8,7 @@ namespace Hx.MenuSystem.Application
     {
         public MenuSystemProfile()
         {
-            CreateMap<Menu, MenuDto>(MemberList.Source);
+            CreateMap<Menu, MenuDto>(MemberList.None);
         }
     }
 }

@@ -27,7 +27,7 @@ namespace Hx.MenuSystem.Application.Contracts
         public Guid? AppFormId { get; set; }
 
         public Guid? ParentId { get; set; }
-        public int Order { get; set; }
+        public double Order { get; set; }
         public bool IsActive { get; set; } = true;
     }
 }

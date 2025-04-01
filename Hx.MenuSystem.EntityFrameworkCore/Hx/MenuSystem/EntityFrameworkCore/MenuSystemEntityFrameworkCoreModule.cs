@@ -8,7 +8,7 @@ namespace Hx.MenuSystem.EntityFrameworkCore
 {
     [DependsOn(typeof(AbpEntityFrameworkCoreModule))]
     [DependsOn(typeof(AbpEntityFrameworkCorePostgreSqlModule))]
-    internal class MenuSystemEntityFrameworkCoreModule : AbpModule
+    public class MenuSystemEntityFrameworkCoreModule : AbpModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {

@@ -5,16 +5,16 @@ using Hx.MenuSystem.EntityFrameworkCore;
 
 namespace Hx.MenuSystem.Migrations
 {
-    internal class MenuSystemContextFactory : IDesignTimeDbContextFactory<MenuSystemDbContext>
+    internal class MenuSystemContextFactory : IDesignTimeDbContextFactory<MenuSystemMigrationsContext>
     {
-        public MenuSystemDbContext CreateDbContext(string[] args)
+        public MenuSystemMigrationsContext CreateDbContext(string[] args)
         {
             var configuration = BuildConfiguration();
             var builder =
-                new DbContextOptionsBuilder<MenuSystemDbContext>()
+                new DbContextOptionsBuilder<MenuSystemMigrationsContext>()
                 .UseNpgsql(
                 configuration.GetConnectionString("MenuSystem"));
-            return new MenuSystemDbContext(builder.Options);
+            return new MenuSystemMigrationsContext(builder.Options);
         }
         private static IConfigurationRoot BuildConfiguration()
         {

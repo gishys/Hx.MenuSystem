@@ -15,6 +15,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Hx.MenuSystem.Application.Contracts\Hx.MenuSystem.Application.Contracts.csproj" />
     <ProjectReference Include="..\Hx.MenuSystem.Domain\Hx.MenuSystem.Domain.csproj" />
+    <ProjectReference Include="..\Hx.MenuSystem.EntityFrameworkCore\Hx.MenuSystem.EntityFrameworkCore.csproj" />
   </ItemGroup>
 
 </Project>

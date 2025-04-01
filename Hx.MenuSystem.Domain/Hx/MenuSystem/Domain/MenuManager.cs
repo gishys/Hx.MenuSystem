@@ -20,7 +20,7 @@ namespace Hx.MenuSystem.Domain
             string appName,
             string permissionName,
             string? icon,
-            int order,
+            double order,
             Guid? parentId = null,
             Guid? appFormId = null)
         {

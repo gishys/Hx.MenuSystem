@@ -32,7 +32,7 @@ namespace Hx.MenuSystem.Domain
         public virtual Guid? AppFormId { get; private set; }
 
         public virtual Guid? ParentId { get; private set; }
-        public virtual int Order { get; set; }
+        public virtual double Order { get; set; }
         public virtual bool IsActive { get; set; } = true;
 
         // 导航属性
@@ -48,7 +48,7 @@ namespace Hx.MenuSystem.Domain
             string appName,
             string permissionName,
             string? icon,
-            int order,
+            double order,
             Guid? parentId = null,
             Guid? appFormId = null)
         {
@@ -87,6 +87,18 @@ namespace Hx.MenuSystem.Domain
         public void SetDisplayName(string displayName)
         {
             DisplayName = Check.NotNullOrWhiteSpace(displayName, nameof(displayName));
+        }
+        public void SetOrder(double order)
+        {
+            Order = order;
+        }
+        public void SetAppFormId(Guid? appFormId)
+        {
+            AppFormId = appFormId;
+        }
+        public void SetParentId(Guid? parentId)
+        {
+            ParentId = parentId;
         }
     }
 }

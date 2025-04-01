@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Hx.MenuSystem.Application\Hx.MenuSystem.Application.csproj" />
+    <ProjectReference Include="..\Hx.MenuSystem.Migrations\Hx.MenuSystem.Migrations.csproj" />
   </ItemGroup>
 
 </Project>

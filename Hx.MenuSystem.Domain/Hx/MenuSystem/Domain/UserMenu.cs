@@ -7,9 +7,9 @@ namespace Hx.MenuSystem.Domain
     {
         public Guid UserId { get; set; }
         public Guid MenuId { get; set; }
-        public int Order { get; set; }
+        public double Order { get; set; }
 
-        public UserMenu(Guid userId, Guid menuId, int order)
+        public UserMenu(Guid userId, Guid menuId, double order)
         {
             UserId = userId;
             MenuId = menuId;

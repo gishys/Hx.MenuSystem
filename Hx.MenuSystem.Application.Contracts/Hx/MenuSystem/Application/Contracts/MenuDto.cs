@@ -1,10 +1,5 @@
 ﻿using Hx.MenuSystem.Domain.Shared;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Volo.Abp.Application.Dtos;
 
 namespace Hx.MenuSystem.Application.Contracts
@@ -35,7 +30,7 @@ namespace Hx.MenuSystem.Application.Contracts
         public Guid? AppFormId { get; set; }
 
         public Guid? ParentId { get; set; }
-        public int Order { get; set; }
+        public double Order { get; set; }
         public bool IsActive { get; set; }
         public List<MenuDto> Children { get; set; } = new();
     }

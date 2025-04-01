@@ -6,7 +6,7 @@ using Volo.Abp.Users;
 
 namespace Hx.MenuSystem.Application
 {
-    [Authorize]
+    //[Authorize]
     public class MenuAppService : ApplicationService, IMenuAppService
     {
         private readonly IMenuRepository _menuRepository;
@@ -29,7 +29,21 @@ namespace Hx.MenuSystem.Application
             var menus = await _menuRepository.GetListByUserIdAsync(userId);
             return ConvertToMenuTree(menus);
         }
-
+        public async Task<MenuDto> AddMenuUsersAsync(CreateOrUpdateMenuUserDto input)
+        {
+            var menu = await _menuRepository.GetAsync(input.MenuId);
+            menu.Users.RemoveAll(r => r.UserId == input.UserId);
+            menu.Users.Add(new UserMenu(input.UserId, input.UserId, input.Order));
+            await _menuRepository.UpdateAsync(menu);
+            return ObjectMapper.Map<Menu, MenuDto>(menu);
+        }
+        public async Task<MenuDto> RemoveMenuUsersAsync(Guid menuId, Guid userId)
+        {
+            var menu = await _menuRepository.GetAsync(menuId);
+            menu.Users.RemoveAll(r => r.UserId == userId);
+            await _menuRepository.UpdateAsync(menu);
+            return ObjectMapper.Map<Menu, MenuDto>(menu);
+        }
         private List<MenuDto> ConvertToMenuTree(List<Menu> menus)
         {
             var menuDtos = ObjectMapper.Map<List<Menu>, List<MenuDto>>(menus);
@@ -43,7 +57,7 @@ namespace Hx.MenuSystem.Application
             return lookup[null].OrderBy(m => m.Order).ToList();
         }
 
-        [Authorize("MenuSystem.MenuManagement")]
+        //[Authorize("MenuSystem.MenuManagement")]
         public async Task<MenuDto> CreateAsync(CreateOrUpdateMenuDto input)
         {
             var menu = await _menuManager.CreateAsync(
@@ -63,13 +77,10 @@ namespace Hx.MenuSystem.Application
 
             return ObjectMapper.Map<Menu, MenuDto>(menu);
         }
-        [Authorize("MenuSystem.MenuManagement")]
+        //[Authorize("MenuSystem.MenuManagement")]
         public async Task<MenuDto> UpdateAsync(Guid id, CreateOrUpdateMenuDto input)
         {
             var entity = await _menuRepository.GetAsync(id);
-            //    input.Order,
-            //    input.ParentId,
-            //    input.AppFormId
             if (!string.Equals(entity.Name, input.Name))
             {
                 entity.SetName(input.Name);
@@ -93,6 +104,14 @@ namespace Hx.MenuSystem.Application
             if (!string.Equals(entity.Icon, input.Icon))
             {
                 entity.SetName(input.Name);
+            }
+            if (!string.Equals(entity.Order, input.Order))
+            {
+                entity.SetOrder(input.Order);
+            }
+            if (!string.Equals(entity.AppFormId, input.AppFormId))
+            {
+                entity.SetAppFormId(input.AppFormId);
             }
             await _menuRepository.UpdateAsync(entity);
 
