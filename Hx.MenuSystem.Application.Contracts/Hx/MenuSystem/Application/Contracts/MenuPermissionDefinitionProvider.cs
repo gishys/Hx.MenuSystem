@@ -1,4 +1,5 @@
-﻿using Volo.Abp.Authorization.Permissions;
+﻿using Localization;
+using Volo.Abp.Authorization.Permissions;
 using Volo.Abp.Localization;
 
 namespace Hx.MenuSystem.Application.Contracts
@@ -13,8 +14,7 @@ namespace Hx.MenuSystem.Application.Contracts
         }
         private static LocalizableString L(string name)
         {
-            //return LocalizableString.Create<MenuResource>(name);
-            return new LocalizableString(name);
+            return LocalizableString.Create<MenuResource>(name);
         }
     }
 }
