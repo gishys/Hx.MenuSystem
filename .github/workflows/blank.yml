@@ -1,0 +1,46 @@
+name: Multi-package NuGet MenuSystem
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '8.0.104'
+        
+    - name: Build and pack NuGet packages
+      run: |
+        version=$(echo "${{ github.event.release.tag_name }}" | cut -c 2-)
+        echo "Setting version to $version"
+        dotnet build Hx.MenuSystem.Application/Hx.MenuSystem.Application.csproj -c Release
+        dotnet pack Hx.MenuSystem.Application/Hx.MenuSystem.Application.csproj -c Release -o ./Hx.MenuSystem.Application /p:PackageVersion=$version
+        dotnet build Hx.MenuSystem.Application.Contracts/Hx.MenuSystem.Application.Contracts.csproj -c Release
+        dotnet pack Hx.MenuSystem.Application.Contracts/Hx.MenuSystem.Application.Contracts.csproj -c Release -o ./Hx.MenuSystem.Application.Contracts /p:PackageVersion=$version
+        dotnet build Hx.MenuSystem.Domain/Hx.MenuSystem.Domain.csproj -c Release
+        dotnet pack Hx.MenuSystem.Domain/Hx.MenuSystem.Domain.csproj -c Release -o ./Hx.MenuSystem.Domain /p:PackageVersion=$version
+        dotnet build Hx.MenuSystem.Domain.Shared/Hx.MenuSystem.Domain.Shared.csproj -c Release
+        dotnet pack Hx.MenuSystem.Domain.Shared/Hx.MenuSystem.Domain.Shared.csproj -c Release -o ./Hx.MenuSystem.Domain.Shared /p:PackageVersion=$version
+        dotnet build Hx.MenuSystem.EntityFrameworkCore/Hx.MenuSystem.EntityFrameworkCore.csproj -c Release
+        dotnet pack Hx.MenuSystem.EntityFrameworkCore/Hx.MenuSystem.EntityFrameworkCore.csproj -c Release -o ./Hx.MenuSystem.EntityFrameworkCore /p:PackageVersion=$version
+        cp ./Hx.MenuSystem.Application/*.nupkg $GITHUB_WORKSPACE
+        cp ./Hx.MenuSystem.Application.Contracts/*.nupkg $GITHUB_WORKSPACE
+        cp ./Hx.MenuSystem.Domain/*.nupkg $GITHUB_WORKSPACE
+        cp ./Hx.MenuSystem.Domain.Shared/*.nupkg $GITHUB_WORKSPACE
+        cp ./Hx.MenuSystem.EntityFrameworkCore/*.nupkg $GITHUB_WORKSPACE
+
+    - name: Push NuGet packages
+      run: |
+        dotnet nuget push ./Hx.MenuSystem.Application/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate
+        dotnet nuget push ./Hx.MenuSystem.Application.Contracts/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate
+        dotnet nuget push ./Hx.MenuSystem.Domain/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate
+        dotnet nuget push ./Hx.MenuSystem.Domain.Shared/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate
+        dotnet nuget push ./Hx.MenuSystem.EntityFrameworkCore/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate
