@@ -21,6 +21,7 @@ namespace Hx.MenuSystem.Domain
             string permissionName,
             string? icon,
             double order,
+            bool isActive,
             Guid? parentId = null,
             Guid? appFormId = null)
         {
@@ -35,6 +36,7 @@ namespace Hx.MenuSystem.Domain
                 permissionName,
                 icon,
                 order,
+                isActive,
                 parentId,
                 appFormId
             );

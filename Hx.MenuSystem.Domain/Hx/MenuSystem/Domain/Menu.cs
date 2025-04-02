@@ -49,6 +49,7 @@ namespace Hx.MenuSystem.Domain
             string permissionName,
             string? icon,
             double order,
+            bool isActive,
             Guid? parentId = null,
             Guid? appFormId = null)
         {
@@ -61,6 +62,7 @@ namespace Hx.MenuSystem.Domain
             AppFormId = appFormId;
             ParentId = parentId;
             Id = id;
+            IsActive = isActive;
             Order = order;
         }
 
@@ -80,7 +82,7 @@ namespace Hx.MenuSystem.Domain
         {
             PermissionName = Check.NotNullOrWhiteSpace(permissionName, nameof(permissionName));
         }
-        public void SetIcon(string icon)
+        public void SetIcon(string? icon)
         {
             Icon = icon;
         }
@@ -99,6 +101,10 @@ namespace Hx.MenuSystem.Domain
         public void SetParentId(Guid? parentId)
         {
             ParentId = parentId;
+        }
+        public void SetIsActive(bool isActive)
+        {
+            IsActive = isActive;
         }
     }
 }

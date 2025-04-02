@@ -21,6 +21,12 @@ namespace Hx.MenuSystem.EntityFrameworkCore
 
             return await query.ToListAsync();
         }
+        public async override Task<Menu> GetAsync(Guid id, bool includeDetails = true, CancellationToken cancellationToken = default)
+        {
+            var dbContext = await GetDbContextAsync();
+            var query = from menu in dbContext.Menus where menu.Id == id select menu;
+            return await query.Include(d => d.Users).FirstAsync();
+        }
         public async Task<Menu?> FindByNameAsync(string name, Guid? tenantId)
         {
             var dbContext = await GetDbContextAsync();

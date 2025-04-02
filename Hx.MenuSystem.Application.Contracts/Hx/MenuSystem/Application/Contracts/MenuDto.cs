@@ -32,6 +32,7 @@ namespace Hx.MenuSystem.Application.Contracts
         public Guid? ParentId { get; set; }
         public double Order { get; set; }
         public bool IsActive { get; set; }
+        public bool? IsGranted {  get; set; }
         public List<MenuDto> Children { get; set; } = new();
     }
 }
