@@ -40,7 +40,8 @@ namespace Hx.MenuSystem.Application
         {
             var menus = await _menuRepository.FindByAppNameAsync(appName, CurrentTenant.Id);
             var menuDtos = ObjectMapper.Map<List<Menu>, List<MenuDto>>(menus);
-            menuDtos = checkAuth ? ConvertToMenuTree(menuDtos) : menuDtos;
+            menuDtos = checkAuth ? await CheckAuthAsync(menuDtos) : menuDtos;
+            menuDtos = ConvertToMenuTree(menuDtos);
             return ConvertToMenuTree(menuDtos);
         }
         [Authorize("MenuSystem.GrantedAuth")]
