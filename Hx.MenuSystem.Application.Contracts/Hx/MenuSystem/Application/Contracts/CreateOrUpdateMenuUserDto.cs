@@ -8,8 +8,7 @@ namespace Hx.MenuSystem.Application.Contracts
 {
     public class CreateOrUpdateMenuUserDto
     {
-        public Guid MenuId { get; set; }
-        public Guid UserId { get; set; }
-        public double Order {  get; set; }
+        public required Guid[] MenuIds { get; set; }
+        public required Guid UserId { get; set; }
     }
 }

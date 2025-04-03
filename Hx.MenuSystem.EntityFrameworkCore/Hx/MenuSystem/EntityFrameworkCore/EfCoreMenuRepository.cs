@@ -43,5 +43,21 @@ namespace Hx.MenuSystem.EntityFrameworkCore
                         select menu;
             return await query.ToListAsync();
         }
+        public async Task<List<Menu>> FindByIdsAsync(Guid[] ids)
+        {
+            if (ids == null || ids.Length == 0)
+            {
+                return new List<Menu>();
+            }
+            var dbContext = await GetDbContextAsync();
+            var batchSize = 2000;
+            var result = new List<Menu>();
+            for (var i = 0; i < ids.Length; i += batchSize)
+            {
+                var batch = ids.Skip(i).Take(batchSize);
+                result.AddRange(await dbContext.Menus.Include(m => m.Users).Where(m => batch.Contains(m.Id)).ToListAsync());
+            }
+            return result;
+        }
     }
 }

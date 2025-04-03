@@ -7,5 +7,6 @@ namespace Hx.MenuSystem.Domain
         Task<List<Menu>> GetListByUserIdAsync(Guid userId);
         Task<Menu?> FindByNameAsync(string name, Guid? tenantId);
         Task<List<Menu>> FindByAppNameAsync(string appName, Guid? tenantId);
+        Task<List<Menu>> FindByIdsAsync(Guid[] ids);
     }
 }
