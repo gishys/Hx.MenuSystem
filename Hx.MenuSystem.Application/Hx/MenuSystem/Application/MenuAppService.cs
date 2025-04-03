@@ -30,13 +30,13 @@ namespace Hx.MenuSystem.Application
             var menuDtos = ObjectMapper.Map<List<Menu>, List<MenuDto>>(menuAuths);
             return ConvertToMenuTree(menuDtos);
         }
-        public async Task<List<MenuDto>> GetMenusByAppNameAsync(string appName, bool checkAuth = true)
+        public async Task<List<MenuDto>> GetMenusByAppNameAsync(string appName, string? displayName = null, bool checkAuth = true)
         {
-            var menus = await _menuRepository.FindByAppNameAsync(appName, CurrentTenant.Id);
+            var menus = await _menuRepository.FindByAppNameAsync(appName, displayName, CurrentTenant.Id);
             var menuDtos = ObjectMapper.Map<List<Menu>, List<MenuDto>>(menus);
             menuDtos = checkAuth ? await CheckAuthAsync(menuDtos) : menuDtos;
             menuDtos = ConvertToMenuTree(menuDtos);
-            return ConvertToMenuTree(menuDtos);
+            return menuDtos;
         }
         [Authorize("MenuSystem.GrantedAuth")]
         public async Task<List<MenuDto>> AddMenuUsersAsync(CreateOrUpdateMenuUserDto input)
@@ -87,24 +87,19 @@ namespace Hx.MenuSystem.Application
             // 获取权限服务并验证依赖
             var permissionService = _serviceProvider.GetService<IPermissionAppService>()
                 ?? throw new UserFriendlyException("[IPermissionAppService]未注册权限服务！");
-
             // 获取当前用户并验证用户状态
             var userId = CurrentUser.Id
                 ?? throw new UserFriendlyException("获取当前登录人失败！");
-
             // 并行获取用户权限和角色权限
             var userPermissionNames = await GetGrantedPermissionNamesAsync(permissionService, "U", userId.ToString());
             var grantedPermissions = new HashSet<string>(userPermissionNames);
-
             // 并行处理所有角色权限请求
             var rolePermissionTasks = CurrentUser.Roles
                 .Select(role => GetGrantedPermissionNamesAsync(permissionService, "R", role));
-
             foreach (var rolePermissions in await Task.WhenAll(rolePermissionTasks))
             {
                 grantedPermissions.UnionWith(rolePermissions);
             }
-
             // 使用HashSet进行高效权限过滤
             return menus
                 .Where(m => !string.IsNullOrEmpty(m.PermissionName) && grantedPermissions.Contains(m.PermissionName))
@@ -116,18 +111,15 @@ namespace Hx.MenuSystem.Application
                 ?? throw new UserFriendlyException("[IPermissionAppService]未注册权限服务！");
             var userId = CurrentUser.Id
                 ?? throw new UserFriendlyException("获取当前登录人失败！");
-
             // 获取用户和角色的所有权限
             var userPermissionNames = await GetGrantedPermissionNamesAsync(permissionService, "U", userId.ToString());
             var grantedPermissions = new HashSet<string>(userPermissionNames);
-
             var rolePermissionTasks = CurrentUser.Roles
                 .Select(role => GetGrantedPermissionNamesAsync(permissionService, "R", role));
             foreach (var rolePermissions in await Task.WhenAll(rolePermissionTasks))
             {
                 grantedPermissions.UnionWith(rolePermissions);
             }
-
             // 遍历所有菜单，设置 IsGranted 字段
             foreach (var menu in menus)
             {
