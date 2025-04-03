@@ -4,14 +4,9 @@ using Volo.Abp.Domain.Services;
 namespace Hx.MenuSystem.Domain
 {
     // 领域服务
-    public class MenuManager : DomainService
+    public class MenuManager(IMenuRepository menuRepository) : DomainService
     {
-        private readonly IMenuRepository _menuRepository;
-
-        public MenuManager(IMenuRepository menuRepository)
-        {
-            _menuRepository = menuRepository;
-        }
+        private readonly IMenuRepository _menuRepository = menuRepository;
 
         public async Task<Menu> CreateAsync(
             string name,

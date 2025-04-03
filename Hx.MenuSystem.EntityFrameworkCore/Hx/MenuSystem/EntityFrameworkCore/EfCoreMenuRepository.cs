@@ -5,11 +5,8 @@ using Volo.Abp.EntityFrameworkCore;
 
 namespace Hx.MenuSystem.EntityFrameworkCore
 {
-    public class EfCoreMenuRepository : EfCoreRepository<MenuSystemDbContext, Menu, Guid>, IMenuRepository
+    public class EfCoreMenuRepository(IDbContextProvider<MenuSystemDbContext> dbContextProvider) : EfCoreRepository<MenuSystemDbContext, Menu, Guid>(dbContextProvider), IMenuRepository
     {
-        public EfCoreMenuRepository(IDbContextProvider<MenuSystemDbContext> dbContextProvider)
-            : base(dbContextProvider) { }
-
         public async Task<List<Menu>> GetListByUserIdAsync(Guid userId)
         {
             var dbContext = await GetDbContextAsync();
@@ -25,7 +22,7 @@ namespace Hx.MenuSystem.EntityFrameworkCore
         {
             var dbContext = await GetDbContextAsync();
             var query = from menu in dbContext.Menus where menu.Id == id select menu;
-            return await query.Include(d => d.Users).FirstAsync();
+            return await query.Include(d => d.Users).FirstAsync(cancellationToken: cancellationToken);
         }
         public async Task<Menu?> FindByNameAsync(string name, Guid? tenantId)
         {
@@ -47,7 +44,7 @@ namespace Hx.MenuSystem.EntityFrameworkCore
         {
             if (ids == null || ids.Length == 0)
             {
-                return new List<Menu>();
+                return [];
             }
             var dbContext = await GetDbContextAsync();
             var batchSize = 2000;

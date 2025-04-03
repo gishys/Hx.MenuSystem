@@ -10,24 +10,17 @@ using Volo.Abp.Users;
 
 namespace Hx.MenuSystem.Application
 {
-    //[Authorize]
-    public class MenuAppService : ApplicationService, IMenuAppService
+    [Authorize]
+    public class MenuAppService(
+        IMenuRepository menuRepository,
+        MenuManager menuManager,
+        ICurrentUser currentUser,
+        IServiceProvider serviceProvider) : ApplicationService, IMenuAppService
     {
-        private readonly IMenuRepository _menuRepository;
-        private readonly MenuManager _menuManager;
-        private readonly ICurrentUser _currentUser;
-        private readonly IServiceProvider _serviceProvider;
-        public MenuAppService(
-            IMenuRepository menuRepository,
-            MenuManager menuManager,
-            ICurrentUser currentUser,
-            IServiceProvider serviceProvider)
-        {
-            _menuRepository = menuRepository;
-            _menuManager = menuManager;
-            _currentUser = currentUser;
-            _serviceProvider = serviceProvider;
-        }
+        private readonly IMenuRepository _menuRepository = menuRepository;
+        private readonly MenuManager _menuManager = menuManager;
+        private readonly ICurrentUser _currentUser = currentUser;
+        private readonly IServiceProvider _serviceProvider = serviceProvider;
 
         public async Task<List<MenuDto>> GetCurrentUserMenusAsync(bool checkAuth = true)
         {
@@ -65,7 +58,7 @@ namespace Hx.MenuSystem.Application
         }
 
         [Authorize("MenuSystem.GrantedAuth")]
-        public async Task RemoveMenuUsersAsync(CreateOrUpdateMenuUserDto input)
+        public async Task PutMenuUsersAsync(CreateOrUpdateMenuUserDto input)
         {
             var menus = await _menuRepository.FindByIdsAsync(input.MenuIds);
             var foundMenuIds = menus.Select(m => m.Id).ToHashSet();
@@ -85,9 +78,9 @@ namespace Hx.MenuSystem.Application
             var lookup = menuDtos.ToLookup(m => m.ParentId);
             foreach (var menu in menuDtos)
             {
-                menu.Children = lookup[menu.Id].OrderBy(m => m.Order).ToList();
+                menu.Children = [.. lookup[menu.Id].OrderBy(m => m.Order)];
             }
-            return lookup[null].OrderBy(m => m.Order).ToList();
+            return [.. lookup[null].OrderBy(m => m.Order)];
         }
         private async Task<List<Menu>> CheckAuthAsync(List<Menu> menus)
         {
@@ -145,7 +138,7 @@ namespace Hx.MenuSystem.Application
 
             return menus;
         }
-        private async Task<IEnumerable<string>> GetGrantedPermissionNamesAsync(
+        private static async Task<IEnumerable<string>> GetGrantedPermissionNamesAsync(
             IPermissionAppService permissionService,
             string type,
             string id)
