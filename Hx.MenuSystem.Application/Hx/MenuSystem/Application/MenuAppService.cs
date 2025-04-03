@@ -45,7 +45,7 @@ namespace Hx.MenuSystem.Application
             menuDtos = ConvertToMenuTree(menuDtos);
             return ConvertToMenuTree(menuDtos);
         }
-        //[Authorize("MenuSystem.GrantedAuth")]
+        [Authorize("MenuSystem.GrantedAuth")]
         public async Task<List<MenuDto>> AddMenuUsersAsync(CreateOrUpdateMenuUserDto input)
         {
             var menus = await _menuRepository.FindByIdsAsync(input.MenuIds);
@@ -64,19 +64,19 @@ namespace Hx.MenuSystem.Application
             return ObjectMapper.Map<List<Menu>, List<MenuDto>>(menus);
         }
 
-        //[Authorize("MenuSystem.GrantedAuth")]
-        public async Task RemoveMenuUsersAsync(Guid[] menuIds, Guid userId)
+        [Authorize("MenuSystem.GrantedAuth")]
+        public async Task RemoveMenuUsersAsync(CreateOrUpdateMenuUserDto input)
         {
-            var menus = await _menuRepository.FindByIdsAsync(menuIds);
+            var menus = await _menuRepository.FindByIdsAsync(input.MenuIds);
             var foundMenuIds = menus.Select(m => m.Id).ToHashSet();
-            var missingMenuIds = menuIds.Except(foundMenuIds).ToList();
+            var missingMenuIds = input.MenuIds.Except(foundMenuIds).ToList();
             if (missingMenuIds.Count > 0)
             {
                 throw new EntityNotFoundException($"未找到ID为 {string.Join(", ", missingMenuIds)} 的菜单");
             }
             foreach (var menu in menus)
             {
-                menu.Users.RemoveAll(r => r.UserId == userId);
+                menu.Users.RemoveAll(r => r.UserId == input.UserId);
             }
             await _menuRepository.UpdateManyAsync(menus);
         }
@@ -158,7 +158,7 @@ namespace Hx.MenuSystem.Application
                 .Distinct();
         }
 
-        //[Authorize("MenuSystem.MenuManagement")]
+        [Authorize("MenuSystem.MenuManagement")]
         public async Task<MenuDto> CreateAsync(CreateOrUpdateMenuDto input)
         {
             var menu = await _menuManager.CreateAsync(
