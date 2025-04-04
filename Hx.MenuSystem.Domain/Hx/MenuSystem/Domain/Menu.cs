@@ -108,7 +108,7 @@ namespace Hx.MenuSystem.Domain
         }
         public void AddOrUpdateUser(Guid userId)
         {
-            Users.RemoveAll(r => r.UserId == userId);
+            if (Users.Any(u => u.UserId == userId)) return;
             double maxOrder = Users.Count > 0 ? Users.Max(u => u.Order) : 0;
             double newOrder = maxOrder + 1;
             Users.Add(new UserMenu(
