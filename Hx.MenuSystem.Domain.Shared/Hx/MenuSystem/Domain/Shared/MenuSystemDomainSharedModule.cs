@@ -22,8 +22,6 @@ namespace Hx.MenuSystem.Domain.Shared
                     .Add<MenuResource>("zh-Hans")
                     .AddBaseTypes(typeof(AbpValidationResource))
                     .AddVirtualJson("/Localization");
-
-                options.DefaultResourceType = typeof(MenuResource);
             });
 
             Configure<AbpExceptionLocalizationOptions>(options =>

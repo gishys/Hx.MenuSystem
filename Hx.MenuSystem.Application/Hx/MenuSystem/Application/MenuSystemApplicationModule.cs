@@ -1,10 +1,11 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Hx.MenuSystem.Application.Contracts;
+using Hx.MenuSystem.Domain;
+using Hx.MenuSystem.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Application;
 using Volo.Abp.AutoMapper;
 using Volo.Abp.Modularity;
-using Hx.MenuSystem.Domain;
-using Hx.MenuSystem.EntityFrameworkCore;
-using Hx.MenuSystem.Application.Contracts;
+using Volo.Abp.PermissionManagement;
 
 namespace Hx.MenuSystem.Application
 {
@@ -18,7 +19,7 @@ namespace Hx.MenuSystem.Application
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddAutoMapperObjectMapper<MenuSystemApplicationModule>();
-
+            context.Services.AddTransient<IPermissionAppService, HxPermissionAppService>();
             Configure<AbpAutoMapperOptions>(options =>
             {
                 options.AddProfile<MenuSystemProfile>(validate: true);
