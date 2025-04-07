@@ -9,6 +9,7 @@ namespace Hx.MenuSystem.Application.Contracts
         public override void Define(IPermissionDefinitionContext context)
         {
             var myGroup = context.AddGroup("MenuSystem", L("Permission:Menu"));
+            myGroup.AddPermission("MenuSystem", L("Permission:MenuSystem"));
             myGroup.AddPermission("MenuSystem.MenuManagement", L("Permission:MenuSystem.MenuManagement"));
             myGroup.AddPermission("MenuSystem.GrantedAuth", L("Permission:MenuSystem.GrantedAuth"));
         }

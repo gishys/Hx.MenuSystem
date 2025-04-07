@@ -14,7 +14,7 @@ namespace Hx.MenuSystem.Domain.Shared
         {
             Configure<AbpVirtualFileSystemOptions>(options =>
             {
-                options.FileSets.AddEmbedded<MenuSystemDomainSharedModule>();
+                options.FileSets.AddEmbedded<MenuSystemDomainSharedModule>("Hx.MenuSystem.Domain.Shared");
             });
 
             Configure<AbpLocalizationOptions>(options =>
