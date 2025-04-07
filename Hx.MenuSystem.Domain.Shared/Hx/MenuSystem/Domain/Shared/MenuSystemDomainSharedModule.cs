@@ -27,7 +27,7 @@ namespace Hx.MenuSystem.Domain.Shared
 
             Configure<AbpExceptionLocalizationOptions>(options =>
             {
-                options.MapCodeNamespace("MenuSystem", typeof(MenuResource));
+                options.MapCodeNamespace("Hx.MenuSystem.Domain.Shared", typeof(MenuResource));
             });
         }
     }
