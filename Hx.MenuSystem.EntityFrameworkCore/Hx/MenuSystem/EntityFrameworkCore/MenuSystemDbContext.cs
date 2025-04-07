@@ -9,7 +9,7 @@ namespace Hx.MenuSystem.EntityFrameworkCore
     public class MenuSystemDbContext(DbContextOptions<MenuSystemDbContext> options) : AbpDbContext<MenuSystemDbContext>(options)
     {
         public virtual DbSet<Menu> Menus { get; set; }
-        public virtual DbSet<UserMenu> UserMenus { get; set; }
+        public virtual DbSet<SubjectMenu> SubjectMenus { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

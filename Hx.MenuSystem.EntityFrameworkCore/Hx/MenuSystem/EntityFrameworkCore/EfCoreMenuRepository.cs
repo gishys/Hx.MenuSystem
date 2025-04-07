@@ -7,12 +7,12 @@ namespace Hx.MenuSystem.EntityFrameworkCore
 {
     public class EfCoreMenuRepository(IDbContextProvider<MenuSystemDbContext> dbContextProvider) : EfCoreRepository<MenuSystemDbContext, Menu, Guid>(dbContextProvider), IMenuRepository
     {
-        public async Task<List<Menu>> GetListByUserIdAsync(Guid userId)
+        public async Task<List<Menu>> GetListBySubjectIdAsync(Guid subjectId)
         {
             var dbContext = await GetDbContextAsync();
             var query = from menu in dbContext.Menus
-                        join userMenu in dbContext.UserMenus on menu.Id equals userMenu.MenuId
-                        where userMenu.UserId == userId && menu.IsActive
+                        join subjectMenu in dbContext.SubjectMenus on menu.Id equals subjectMenu.MenuId
+                        where subjectMenu.SubjectId == subjectId && menu.IsActive
                         orderby menu.Order
                         select menu;
 
@@ -22,13 +22,21 @@ namespace Hx.MenuSystem.EntityFrameworkCore
         {
             var dbContext = await GetDbContextAsync();
             var query = from menu in dbContext.Menus where menu.Id == id select menu;
-            return await query.Include(d => d.Users).FirstAsync(cancellationToken: cancellationToken);
+            return await query.Include(d => d.Subjects).FirstAsync(cancellationToken: cancellationToken);
         }
         public async Task<Menu?> FindByNameAsync(string name, Guid? tenantId)
         {
             var dbContext = await GetDbContextAsync();
             var query = from menu in dbContext.Menus
                         where menu.Name == name && menu.TenantId == tenantId
+                        select menu;
+            return await query.FirstOrDefaultAsync();
+        }
+        public async Task<Menu?> FindByPermissionNameAsync(string permissionName, Guid? tenantId)
+        {
+            var dbContext = await GetDbContextAsync();
+            var query = from menu in dbContext.Menus
+                        where menu.PermissionName == permissionName && menu.TenantId == tenantId
                         select menu;
             return await query.FirstOrDefaultAsync();
         }
@@ -53,7 +61,23 @@ namespace Hx.MenuSystem.EntityFrameworkCore
             for (var i = 0; i < ids.Length; i += batchSize)
             {
                 var batch = ids.Skip(i).Take(batchSize);
-                result.AddRange(await dbContext.Menus.Include(m => m.Users).Where(m => batch.Contains(m.Id)).ToListAsync());
+                result.AddRange(await dbContext.Menus.Include(m => m.Subjects).Where(m => batch.Contains(m.Id)).ToListAsync());
+            }
+            return result;
+        }
+        public async Task<List<Menu>> FindByPermissionNamesAsync(string[] names)
+        {
+            if (names == null || names.Length == 0)
+            {
+                return [];
+            }
+            var dbContext = await GetDbContextAsync();
+            var batchSize = 2000;
+            var result = new List<Menu>();
+            for (var i = 0; i < names.Length; i += batchSize)
+            {
+                var batch = names.Skip(i).Take(batchSize);
+                result.AddRange(await dbContext.Menus.Include(m => m.Subjects).Where(m => batch.Contains(m.PermissionName)).ToListAsync());
             }
             return result;
         }

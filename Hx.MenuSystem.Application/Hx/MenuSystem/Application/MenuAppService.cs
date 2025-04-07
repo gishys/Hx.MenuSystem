@@ -1,5 +1,6 @@
 ﻿using Hx.MenuSystem.Application.Contracts;
 using Hx.MenuSystem.Domain;
+using Hx.MenuSystem.Domain.Shared;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
@@ -10,7 +11,7 @@ using Volo.Abp.Users;
 
 namespace Hx.MenuSystem.Application
 {
-    [Authorize]
+    //[Authorize]
     public class MenuAppService(
         IMenuRepository menuRepository,
         MenuManager menuManager,
@@ -25,7 +26,7 @@ namespace Hx.MenuSystem.Application
         public async Task<List<MenuDto>> GetCurrentUserMenusAsync(bool checkAuth = true)
         {
             var userId = _currentUser.GetId();
-            var menus = await _menuRepository.GetListByUserIdAsync(userId);
+            var menus = await _menuRepository.GetListBySubjectIdAsync(userId);
             var menuAuths = checkAuth ? await CheckAuthAsync(menus) : menus;
             var menuDtos = ObjectMapper.Map<List<Menu>, List<MenuDto>>(menuAuths);
             return ConvertToMenuTree(menuDtos);
@@ -40,14 +41,14 @@ namespace Hx.MenuSystem.Application
                 menuDtos = filteredMenus;
                 if (grantedMenuIds.Count > 0)
                 {
-                    await AddMenuUsersAsync(new CreateOrUpdateMenuUserDto() { MenuIds = [.. grantedMenuIds], UserId = CurrentUser.GetId() });
+                    await AddMenuUsersAsync(new CreateOrUpdateMenuSubjectDto() { MenuIds = [.. grantedMenuIds], SubjectId = CurrentUser.GetId(), SubjectType = "U" });
                 }
             }
             menuDtos = ConvertToMenuTree(menuDtos);
             return menuDtos;
         }
-        [Authorize("MenuSystem.GrantedAuth")]
-        public async Task<List<MenuDto>> AddMenuUsersAsync(CreateOrUpdateMenuUserDto input)
+        //[Authorize("MenuSystem.GrantedAuth")]
+        public async Task<List<MenuDto>> AddMenuUsersAsync(CreateOrUpdateMenuSubjectDto input)
         {
             var menus = await _menuRepository.FindByIdsAsync(input.MenuIds);
             var foundMenuIds = menus.Select(m => m.Id).ToHashSet();
@@ -58,14 +59,13 @@ namespace Hx.MenuSystem.Application
             }
             foreach (var menu in menus)
             {
-                menu.AddOrUpdateUser(input.UserId);
-
+                menu.AddOrUpdateSubject(input.SubjectId, input.SubjectType.ToSubjectType());
             }
             await _menuRepository.UpdateManyAsync(menus);
             return ObjectMapper.Map<List<Menu>, List<MenuDto>>(menus);
         }
-        [Authorize("MenuSystem.GrantedAuth")]
-        public async Task PutMenuUsersAsync(CreateOrUpdateMenuUserDto input)
+        //[Authorize("MenuSystem.GrantedAuth")]
+        public async Task PutMenuUsersAsync(CreateOrUpdateMenuSubjectDto input)
         {
             var menus = await _menuRepository.FindByIdsAsync(input.MenuIds);
             var foundMenuIds = menus.Select(m => m.Id).ToHashSet();
@@ -76,11 +76,11 @@ namespace Hx.MenuSystem.Application
             }
             foreach (var menu in menus)
             {
-                menu.Users.RemoveAll(r => r.UserId == input.UserId);
+                menu.Subjects.RemoveAll(r => r.SubjectId == input.SubjectId);
             }
             await _menuRepository.UpdateManyAsync(menus);
         }
-        private List<MenuDto> ConvertToMenuTree(List<MenuDto> menuDtos)
+        private static List<MenuDto> ConvertToMenuTree(List<MenuDto> menuDtos)
         {
             var lookup = menuDtos.ToLookup(m => m.ParentId);
             foreach (var menu in menuDtos)
@@ -157,7 +157,7 @@ namespace Hx.MenuSystem.Application
                 .Distinct();
         }
 
-        [Authorize("MenuSystem.MenuManagement")]
+        //[Authorize("MenuSystem.MenuManagement")]
         public async Task<MenuDto> CreateAsync(CreateOrUpdateMenuDto input)
         {
             var menu = await _menuManager.CreateAsync(
@@ -182,7 +182,7 @@ namespace Hx.MenuSystem.Application
         {
             await _menuRepository.DeleteAsync(id);
         }
-        [Authorize("MenuSystem.MenuManagement")]
+        //[Authorize("MenuSystem.MenuManagement")]
         public async Task<MenuDto> UpdateAsync(Guid id, CreateOrUpdateMenuDto input)
         {
             var entity = await _menuRepository.GetAsync(id);

@@ -33,14 +33,16 @@ namespace Hx.MenuSystem.EntityFrameworkCore
                 b.Property(x => x.ConcurrencyStamp).HasColumnName("CONCURRENCY_STAMP");
             });
 
-            modelBuilder.Entity<UserMenu>(b =>
+            modelBuilder.Entity<SubjectMenu>(b =>
             {
-                b.ToTable("SYS_USERMENUS");
-                b.HasIndex(x => x.UserId);
-                b.HasKey(x => new { x.UserId, x.MenuId });
+                b.ToTable("SYS_SUBJECT_MENUS");
+                b.HasIndex(x => x.SubjectId);
+                b.HasKey(x => new { x.SubjectId, x.MenuId });
                 b.Property(x => x.MenuId).HasColumnName("MENU_ID");
-                b.Property(x => x.UserId).HasColumnName("USER_ID");
+                b.Property(x => x.SubjectId).HasColumnName("SUBJECT_ID");
                 b.Property(x => x.Order).HasColumnName("ORDER");
+                b.Property(x => x.SubjectType).HasColumnName("SUBJECTTYPE");
+                b.Property(x => x.CreationTime).HasColumnName("CREATIONTIME").HasColumnType("timestamp without time zone");
             });
         }
     }

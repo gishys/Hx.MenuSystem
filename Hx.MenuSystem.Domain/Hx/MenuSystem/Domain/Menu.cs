@@ -36,7 +36,7 @@ namespace Hx.MenuSystem.Domain
         public virtual bool IsActive { get; set; } = true;
 
         // 导航属性
-        public virtual ICollection<UserMenu> Users { get; set; } = new List<UserMenu>();
+        public virtual ICollection<SubjectMenu> Subjects { get; set; } = new List<SubjectMenu>();
 
         private Menu() { }
 
@@ -106,15 +106,17 @@ namespace Hx.MenuSystem.Domain
         {
             IsActive = isActive;
         }
-        public void AddOrUpdateUser(Guid userId)
+        public void AddOrUpdateSubject(Guid subjectId, SubjectType subjectType)
         {
-            if (Users.Any(u => u.UserId == userId)) return;
-            double maxOrder = Users.Count > 0 ? Users.Max(u => u.Order) : 0;
+            if (Subjects.Any(u => u.SubjectId == subjectId)) return;
+            double maxOrder = Subjects.Count > 0 ? Subjects.Max(u => u.Order) : 0;
             double newOrder = maxOrder + 1;
-            Users.Add(new UserMenu(
-                userId: userId,
+            Subjects.Add(new SubjectMenu(
+                subjectId: subjectId,
                 menuId: Id,
-                order: newOrder
+                order: newOrder,
+                subjectType: subjectType,
+                creationTime: DateTime.UtcNow
             ));
         }
     }

@@ -105,33 +105,41 @@ namespace Migrations
                     b.ToTable("SYS_MENUS", (string)null);
                 });
 
-            modelBuilder.Entity("Hx.MenuSystem.Domain.UserMenu", b =>
+            modelBuilder.Entity("Hx.MenuSystem.Domain.SubjectMenu", b =>
                 {
-                    b.Property<Guid>("UserId")
+                    b.Property<Guid>("SubjectId")
                         .HasColumnType("uuid")
-                        .HasColumnName("USER_ID");
+                        .HasColumnName("SUBJECT_ID");
 
                     b.Property<Guid>("MenuId")
                         .HasColumnType("uuid")
                         .HasColumnName("MENU_ID");
 
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("CREATIONTIME");
+
                     b.Property<double>("Order")
                         .HasColumnType("double precision")
                         .HasColumnName("ORDER");
 
-                    b.HasKey("UserId", "MenuId");
+                    b.Property<int>("SubjectType")
+                        .HasColumnType("integer")
+                        .HasColumnName("SUBJECTTYPE");
+
+                    b.HasKey("SubjectId", "MenuId");
 
                     b.HasIndex("MenuId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("SubjectId");
 
-                    b.ToTable("SYS_USERMENUS", (string)null);
+                    b.ToTable("SYS_SUBJECT_MENUS", (string)null);
                 });
 
-            modelBuilder.Entity("Hx.MenuSystem.Domain.UserMenu", b =>
+            modelBuilder.Entity("Hx.MenuSystem.Domain.SubjectMenu", b =>
                 {
                     b.HasOne("Hx.MenuSystem.Domain.Menu", null)
-                        .WithMany("Users")
+                        .WithMany("Subjects")
                         .HasForeignKey("MenuId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -139,7 +147,7 @@ namespace Migrations
 
             modelBuilder.Entity("Hx.MenuSystem.Domain.Menu", b =>
                 {
-                    b.Navigation("Users");
+                    b.Navigation("Subjects");
                 });
 #pragma warning restore 612, 618
         }

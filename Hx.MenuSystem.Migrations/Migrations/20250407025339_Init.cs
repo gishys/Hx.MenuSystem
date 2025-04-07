@@ -36,18 +36,20 @@ namespace Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "SYS_USERMENUS",
+                name: "SYS_SUBJECT_MENUS",
                 columns: table => new
                 {
-                    USER_ID = table.Column<Guid>(type: "uuid", nullable: false),
+                    SUBJECT_ID = table.Column<Guid>(type: "uuid", nullable: false),
                     MENU_ID = table.Column<Guid>(type: "uuid", nullable: false),
-                    ORDER = table.Column<double>(type: "double precision", nullable: false)
+                    ORDER = table.Column<double>(type: "double precision", nullable: false),
+                    SUBJECTTYPE = table.Column<int>(type: "integer", nullable: false),
+                    CREATIONTIME = table.Column<DateTime>(type: "timestamp without time zone", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_SYS_USERMENUS", x => new { x.USER_ID, x.MENU_ID });
+                    table.PrimaryKey("PK_SYS_SUBJECT_MENUS", x => new { x.SUBJECT_ID, x.MENU_ID });
                     table.ForeignKey(
-                        name: "FK_SYS_USERMENUS_SYS_MENUS_MENU_ID",
+                        name: "FK_SYS_SUBJECT_MENUS_SYS_MENUS_MENU_ID",
                         column: x => x.MENU_ID,
                         principalTable: "SYS_MENUS",
                         principalColumn: "ID",
@@ -65,21 +67,21 @@ namespace Migrations
                 column: "NAME");
 
             migrationBuilder.CreateIndex(
-                name: "IX_SYS_USERMENUS_MENU_ID",
-                table: "SYS_USERMENUS",
+                name: "IX_SYS_SUBJECT_MENUS_MENU_ID",
+                table: "SYS_SUBJECT_MENUS",
                 column: "MENU_ID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_SYS_USERMENUS_USER_ID",
-                table: "SYS_USERMENUS",
-                column: "USER_ID");
+                name: "IX_SYS_SUBJECT_MENUS_SUBJECT_ID",
+                table: "SYS_SUBJECT_MENUS",
+                column: "SUBJECT_ID");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "SYS_USERMENUS");
+                name: "SYS_SUBJECT_MENUS");
 
             migrationBuilder.DropTable(
                 name: "SYS_MENUS");

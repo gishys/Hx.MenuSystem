@@ -21,7 +21,7 @@ namespace Hx.MenuSystem.Domain
             Guid? appFormId = null)
         {
             await ValidateNameUniquenessAsync(name, parentId);
-
+            await ValidateNameUniquenessAsync(permissionName, parentId);
             return new Menu(
                 GuidGenerator.Create(),
                 name,
@@ -42,7 +42,16 @@ namespace Hx.MenuSystem.Domain
             var existing = await _menuRepository.FindByNameAsync(name, parentId);
             if (existing != null)
             {
-                throw new BusinessException("DynamicMenu:MenuNameAlreadyExists")
+                throw new BusinessException("菜单名称已经存在！")
+                    .WithData("Name", name);
+            }
+        }
+        private async Task ValidatePermissionUniquenessAsync(string name, Guid? parentId)
+        {
+            var existing = await _menuRepository.FindByPermissionNameAsync(name, parentId);
+            if (existing != null)
+            {
+                throw new BusinessException("权限名称已经存在！")
                     .WithData("Name", name);
             }
         }
