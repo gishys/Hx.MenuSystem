@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Localization\zh-Hans.json" />
+    <EmbeddedResource Include="Localization\MenuSystem\zh-Hans.json" />
   </ItemGroup>
 
   <ItemGroup>

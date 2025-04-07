@@ -1,4 +1,4 @@
-﻿using Localization;
+﻿using Hx.MenuSystem.Localization;
 using Volo.Abp.Authorization.Permissions;
 using Volo.Abp.Localization;
 

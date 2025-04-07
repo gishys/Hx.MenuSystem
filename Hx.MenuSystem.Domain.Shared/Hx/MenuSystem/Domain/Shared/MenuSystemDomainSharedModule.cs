@@ -1,4 +1,4 @@
-﻿using Localization;
+﻿using Hx.MenuSystem.Localization;
 using Volo.Abp.Localization;
 using Volo.Abp.Localization.ExceptionHandling;
 using Volo.Abp.Modularity;
@@ -14,7 +14,7 @@ namespace Hx.MenuSystem.Domain.Shared
         {
             Configure<AbpVirtualFileSystemOptions>(options =>
             {
-                options.FileSets.AddEmbedded<MenuSystemDomainSharedModule>("Hx.MenuSystem.Domain.Shared");
+                options.FileSets.AddEmbedded<MenuSystemDomainSharedModule>();
             });
 
             Configure<AbpLocalizationOptions>(options =>
@@ -22,12 +22,12 @@ namespace Hx.MenuSystem.Domain.Shared
                 options.Resources
                     .Add<MenuResource>("en")
                     .AddBaseTypes(typeof(AbpValidationResource))
-                    .AddVirtualJson("/Localization");
+                    .AddVirtualJson("/Localization/MenuSystem");
             });
 
             Configure<AbpExceptionLocalizationOptions>(options =>
             {
-                options.MapCodeNamespace("Hx.MenuSystem.Domain.Shared", typeof(MenuResource));
+                options.MapCodeNamespace("MenuSystem", typeof(MenuResource));
             });
         }
     }
