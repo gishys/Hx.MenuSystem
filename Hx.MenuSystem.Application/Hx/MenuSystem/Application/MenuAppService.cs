@@ -11,7 +11,7 @@ using Volo.Abp.Users;
 
 namespace Hx.MenuSystem.Application
 {
-    //[Authorize]
+    [Authorize]
     public class MenuAppService(
         IMenuRepository menuRepository,
         MenuManager menuManager,
@@ -31,6 +31,7 @@ namespace Hx.MenuSystem.Application
             var menuDtos = ObjectMapper.Map<List<Menu>, List<MenuDto>>(menuAuths);
             return ConvertToMenuTree(menuDtos);
         }
+        [Authorize("MenuSystem")]
         public async Task<List<MenuDto>> GetMenusByAppNameAsync(string appName, string? displayName = null, bool checkAuth = true)
         {
             var menus = await _menuRepository.FindByAppNameAsync(appName, displayName, CurrentTenant.Id);
@@ -47,7 +48,7 @@ namespace Hx.MenuSystem.Application
             menuDtos = ConvertToMenuTree(menuDtos);
             return menuDtos;
         }
-        //[Authorize("MenuSystem.GrantedAuth")]
+        [Authorize("MenuSystem.GrantedAuth")]
         public async Task<List<MenuDto>> AddMenuUsersAsync(CreateOrUpdateMenuSubjectDto input)
         {
             var menus = await _menuRepository.FindByIdsAsync(input.MenuIds);
@@ -64,7 +65,7 @@ namespace Hx.MenuSystem.Application
             await _menuRepository.UpdateManyAsync(menus);
             return ObjectMapper.Map<List<Menu>, List<MenuDto>>(menus);
         }
-        //[Authorize("MenuSystem.GrantedAuth")]
+        [Authorize("MenuSystem.GrantedAuth")]
         public async Task PutMenuUsersAsync(CreateOrUpdateMenuSubjectDto input)
         {
             var menus = await _menuRepository.FindByIdsAsync(input.MenuIds);
@@ -157,7 +158,7 @@ namespace Hx.MenuSystem.Application
                 .Distinct();
         }
 
-        //[Authorize("MenuSystem.MenuManagement")]
+        [Authorize("MenuSystem.MenuManagement")]
         public async Task<MenuDto> CreateAsync(CreateOrUpdateMenuDto input)
         {
             var menu = await _menuManager.CreateAsync(
@@ -182,7 +183,7 @@ namespace Hx.MenuSystem.Application
         {
             await _menuRepository.DeleteAsync(id);
         }
-        //[Authorize("MenuSystem.MenuManagement")]
+        [Authorize("MenuSystem.MenuManagement")]
         public async Task<MenuDto> UpdateAsync(Guid id, CreateOrUpdateMenuDto input)
         {
             var entity = await _menuRepository.GetAsync(id);

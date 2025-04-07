@@ -7,6 +7,7 @@ using Volo.Abp.VirtualFileSystem;
 
 namespace Hx.MenuSystem.Domain.Shared
 {
+    [DependsOn(typeof(AbpLocalizationModule))]
     public class MenuSystemDomainSharedModule : AbpModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
@@ -19,7 +20,7 @@ namespace Hx.MenuSystem.Domain.Shared
             Configure<AbpLocalizationOptions>(options =>
             {
                 options.Resources
-                    .Add<MenuResource>("zh-Hans")
+                    .Add<MenuResource>("en")
                     .AddBaseTypes(typeof(AbpValidationResource))
                     .AddVirtualJson("/Localization");
             });
