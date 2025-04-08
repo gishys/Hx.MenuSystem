@@ -42,13 +42,22 @@ namespace Hx.MenuSystem.Application
                 menuDtos = filteredMenus;
                 if (grantedMenuIds.Count > 0)
                 {
-                    await AddOrRemoveMenuUsersAsync(new CreateOrUpdateMenuSubjectDto()
+                    var menuSubjectDto = grantedMenuIds.GroupBy(g => new { g.Type, g.Id }).Select(m => new
                     {
-                        MenuIds = [.. grantedMenuIds.Select(d => d.MenuId)],
-                        SubjectId = CurrentUser.GetId(),
-                        SubjectType = "U",
-                        IsGranted = true
+                        MenuIds = m.Select(i => i.MenuId).ToArray(),
+                        SubjectId = m.Key.Id,
+                        SubjectType = m.Key.Type,
                     });
+                    foreach (var menuId in menuSubjectDto)
+                    {
+                        await AddOrRemoveMenuUsersAsync(new CreateOrUpdateMenuSubjectDto()
+                        {
+                            MenuIds = menuId.MenuIds,
+                            SubjectId = new Guid(menuId.SubjectId),
+                            SubjectType = menuId.SubjectType,
+                            IsGranted = true
+                        });
+                    }
                 }
             }
             menuDtos = ConvertToMenuTree(menuDtos);
@@ -94,8 +103,7 @@ namespace Hx.MenuSystem.Application
                 ?? throw new UserFriendlyException("获取当前登录人失败！");
             var userPermissionNames = await GetGrantedPermissionNamesAsync(permissionService, "U", userId.ToString());
             var grantedPermissions = new HashSet<string>(userPermissionNames);
-            var rolePermissionTasks = CurrentUser.Roles
-                .Select(role => GetGrantedPermissionNamesAsync(permissionService, "R", role));
+            var rolePermissionTasks = CurrentUser.Roles.Select(role => GetGrantedPermissionNamesAsync(permissionService, "R", role));
             foreach (var rolePermissions in await Task.WhenAll(rolePermissionTasks))
             {
                 grantedPermissions.UnionWith(rolePermissions);
@@ -129,8 +137,7 @@ namespace Hx.MenuSystem.Application
                     grantedPermissions[perm.Name] = new List<GrantedSource>();
                 grantedPermissions[perm.Name].Add(new GrantedSource { Type = "U", Id = userId.ToString() });
             }
-            var rolePermissionTasks = CurrentUser.Roles
-                .Select(role => GetGrantedPermissionsAsync(permissionService, "R", role));
+            var rolePermissionTasks = CurrentUser.Roles.Select(role => GetGrantedPermissionsAsync(permissionService, "R", role));
             foreach (var rolePermissions in await Task.WhenAll(rolePermissionTasks))
             {
                 foreach (var perm in rolePermissions)

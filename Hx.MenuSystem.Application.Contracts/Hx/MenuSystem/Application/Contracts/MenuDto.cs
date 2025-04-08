@@ -34,5 +34,6 @@ namespace Hx.MenuSystem.Application.Contracts
         public bool IsActive { get; set; }
         public bool IsGranted {  get; set; }
         public List<MenuDto> Children { get; set; } = [];
+        public ICollection<SubjectMenuDto> Subjects { get; set; } = [];
     }
 }
