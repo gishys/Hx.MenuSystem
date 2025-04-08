@@ -4,8 +4,7 @@
     {
         Task<List<MenuDto>> GetCurrentUserMenusAsync(bool checkAuth = false);
         Task<MenuDto> CreateAsync(CreateOrUpdateMenuDto input);
-        Task<List<MenuDto>> AddMenuUsersAsync(CreateOrUpdateMenuSubjectDto input);
-        Task PutMenuUsersAsync(CreateOrUpdateMenuSubjectDto input);
+        Task<List<MenuDto>> AddOrRemoveMenuUsersAsync(CreateOrUpdateMenuSubjectDto input);
         Task<MenuDto> UpdateAsync(Guid id, CreateOrUpdateMenuDto input);
         Task DeleteAsync(Guid id);
     }

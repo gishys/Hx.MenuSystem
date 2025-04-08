@@ -42,44 +42,40 @@ namespace Hx.MenuSystem.Application
                 menuDtos = filteredMenus;
                 if (grantedMenuIds.Count > 0)
                 {
-                    await AddMenuUsersAsync(new CreateOrUpdateMenuSubjectDto() { MenuIds = [.. grantedMenuIds], SubjectId = CurrentUser.GetId(), SubjectType = "U" });
+                    await AddOrRemoveMenuUsersAsync(new CreateOrUpdateMenuSubjectDto()
+                    {
+                        MenuIds = [.. grantedMenuIds.Select(d => d.MenuId)],
+                        SubjectId = CurrentUser.GetId(),
+                        SubjectType = "U",
+                        IsGranted = true
+                    });
                 }
             }
             menuDtos = ConvertToMenuTree(menuDtos);
             return menuDtos;
         }
         [Authorize("MenuSystem.GrantedAuth")]
-        public async Task<List<MenuDto>> AddMenuUsersAsync(CreateOrUpdateMenuSubjectDto input)
+        public async Task<List<MenuDto>> AddOrRemoveMenuUsersAsync(CreateOrUpdateMenuSubjectDto input)
         {
+            // 获取目标菜单列表并验证存在性
             var menus = await _menuRepository.FindByIdsAsync(input.MenuIds);
             var foundMenuIds = menus.Select(m => m.Id).ToHashSet();
             var missingMenuIds = input.MenuIds.Except(foundMenuIds).ToList();
+
             if (missingMenuIds.Count > 0)
-            {
                 throw new EntityNotFoundException($"未找到ID为 {string.Join(", ", missingMenuIds)} 的菜单");
-            }
+
+            // 根据操作类型执行添加或移除
             foreach (var menu in menus)
             {
-                menu.AddOrUpdateSubject(input.SubjectId, input.SubjectType.ToSubjectType());
+                if (input.IsGranted)
+                    menu.AddOrUpdateSubject(input.SubjectId, input.SubjectType.ToSubjectType());
+                else
+                    menu.Subjects.RemoveAll(r => r.SubjectId == input.SubjectId);
             }
+
             await _menuRepository.UpdateManyAsync(menus);
             return ObjectMapper.Map<List<Menu>, List<MenuDto>>(menus);
-        }
-        [Authorize("MenuSystem.GrantedAuth")]
-        public async Task PutMenuUsersAsync(CreateOrUpdateMenuSubjectDto input)
-        {
-            var menus = await _menuRepository.FindByIdsAsync(input.MenuIds);
-            var foundMenuIds = menus.Select(m => m.Id).ToHashSet();
-            var missingMenuIds = input.MenuIds.Except(foundMenuIds).ToList();
-            if (missingMenuIds.Count > 0)
-            {
-                throw new EntityNotFoundException($"未找到ID为 {string.Join(", ", missingMenuIds)} 的菜单");
-            }
-            foreach (var menu in menus)
-            {
-                menu.Subjects.RemoveAll(r => r.SubjectId == input.SubjectId);
-            }
-            await _menuRepository.UpdateManyAsync(menus);
         }
         private static List<MenuDto> ConvertToMenuTree(List<MenuDto> menuDtos)
         {
@@ -108,38 +104,6 @@ namespace Hx.MenuSystem.Application
                 .Where(m => !string.IsNullOrEmpty(m.PermissionName) && grantedPermissions.Contains(m.PermissionName))
                 .ToList();
         }
-        private async Task<(List<MenuDto> FilteredMenus, List<Guid> GrantedMenuIds)> CheckAuthAsync(List<MenuDto> menus)
-        {
-            var permissionService = _serviceProvider.GetService<IPermissionAppService>()
-                ?? throw new UserFriendlyException("[IPermissionAppService]未注册权限服务！");
-            var userId = CurrentUser.Id ?? throw new UserFriendlyException("获取当前登录人失败！");
-            var userPermissionNames = await GetGrantedPermissionNamesAsync(permissionService, "U", userId.ToString());
-            var grantedPermissions = new HashSet<string>(userPermissionNames);
-            var rolePermissionTasks = CurrentUser.Roles
-                .Select(role => GetGrantedPermissionNamesAsync(permissionService, "R", role));
-            foreach (var rolePermissions in await Task.WhenAll(rolePermissionTasks))
-            {
-                grantedPermissions.UnionWith(rolePermissions);
-            }
-            var grantedMenuIds = new List<Guid>();
-            foreach (var menu in menus)
-            {
-                if (menu.Children != null && menu.Children.Count > 0)
-                {
-                    var (filteredChildren, childGrantedIds) = await CheckAuthAsync(menu.Children);
-                    menu.Children = filteredChildren;
-                    grantedMenuIds.AddRange(childGrantedIds);
-                }
-                menu.IsGranted = string.IsNullOrEmpty(menu.PermissionName)
-                    ? (menu.Children?.Any(c => c.IsGranted) ?? true)
-                    : grantedPermissions.Contains(menu.PermissionName);
-                if (menu.IsGranted)
-                {
-                    grantedMenuIds.Add(menu.Id);
-                }
-            }
-            return (menus, grantedMenuIds.Distinct().ToList());
-        }
         private static async Task<IEnumerable<string>> GetGrantedPermissionNamesAsync(
             IPermissionAppService permissionService,
             string type,
@@ -151,6 +115,75 @@ namespace Hx.MenuSystem.Application
                 .Where(p => p.IsGranted)
                 .Select(p => p.Name)
                 .Distinct();
+        }
+        private async Task<(List<MenuDto> FilteredMenus, List<GrantedMenuInfo> GrantedMenuInfos)> CheckAuthAsync(List<MenuDto> menus)
+        {
+            var permissionService = _serviceProvider.GetService<IPermissionAppService>()
+                ?? throw new UserFriendlyException("[IPermissionAppService]未注册权限服务！");
+            var userId = CurrentUser.Id ?? throw new UserFriendlyException("获取当前登录人失败！");
+            var userGranted = await GetGrantedPermissionsAsync(permissionService, "U", userId.ToString());
+            var grantedPermissions = new Dictionary<string, List<GrantedSource>>();
+            foreach (var perm in userGranted)
+            {
+                if (!grantedPermissions.ContainsKey(perm.Name))
+                    grantedPermissions[perm.Name] = new List<GrantedSource>();
+                grantedPermissions[perm.Name].Add(new GrantedSource { Type = "U", Id = userId.ToString() });
+            }
+            var rolePermissionTasks = CurrentUser.Roles
+                .Select(role => GetGrantedPermissionsAsync(permissionService, "R", role));
+            foreach (var rolePermissions in await Task.WhenAll(rolePermissionTasks))
+            {
+                foreach (var perm in rolePermissions)
+                {
+                    if (!grantedPermissions.ContainsKey(perm.Name))
+                        grantedPermissions[perm.Name] = new List<GrantedSource>();
+                    grantedPermissions[perm.Name].Add(new GrantedSource { Type = "R", Id = perm.Id });
+                }
+            }
+            var grantedMenuInfos = new List<GrantedMenuInfo>();
+            foreach (var menu in menus)
+            {
+                if (menu.Children != null && menu.Children.Count > 0)
+                {
+                    var (filteredChildren, childGranted) = await CheckAuthAsync(menu.Children);
+                    menu.Children = filteredChildren;
+                    grantedMenuInfos.AddRange(childGranted);
+                }
+                menu.IsGranted = string.IsNullOrEmpty(menu.PermissionName)
+                    ? (menu.Children?.Any(c => c.IsGranted) ?? true)
+                    : grantedPermissions.ContainsKey(menu.PermissionName);
+
+                if (menu.IsGranted)
+                {
+                    if (!string.IsNullOrEmpty(menu.PermissionName))
+                    {
+                        foreach (var source in grantedPermissions[menu.PermissionName])
+                        {
+                            grantedMenuInfos.Add(new GrantedMenuInfo
+                            {
+                                MenuId = menu.Id,
+                                Type = source.Type,
+                                Id = source.Id
+                            });
+                        }
+                    }
+                }
+            }
+            return (menus, grantedMenuInfos
+                .GroupBy(g => new { g.MenuId, g.Type, g.Id })
+                .Select(g => g.First())
+                .ToList());
+        }
+        private static async Task<IEnumerable<PermissionDto>> GetGrantedPermissionsAsync(
+            IPermissionAppService permissionService,
+            string granteeType,
+            string granteeId)
+        {
+            var result = await permissionService.GetAsync(granteeType, granteeId);
+            return result.Groups
+                .SelectMany(g => g.Permissions)
+                .Where(p => p.IsGranted)
+                .Select(p => new PermissionDto { Name = p.Name, Id = granteeId });
         }
 
         [Authorize("MenuSystem.MenuManagement")]
