@@ -8,10 +8,10 @@ namespace Hx.MenuSystem.Application.Contracts
     {
         public override void Define(IPermissionDefinitionContext context)
         {
-            var myGroup = context.AddGroup("MenuSystem", L("Permission:Menu"));
-            myGroup.AddPermission("MenuSystem", L("Permission:MenuSystem"));
-            myGroup.AddPermission("MenuSystem.MenuManagement", L("Permission:MenuSystem.MenuManagement"));
-            myGroup.AddPermission("MenuSystem.GrantedAuth", L("Permission:MenuSystem.GrantedAuth"));
+            var myGroup = context.AddGroup("MenuSystem", L("Permission:MenuSystem"));
+            var menuPermission = myGroup.AddPermission("MenuSystem.List", L("Permission:MenuSystem.List"));
+            menuPermission.AddChild("MenuSystem.MenuManagement", L("Permission:MenuSystem.MenuManagement"));
+            menuPermission.AddChild("MenuSystem.GrantedAuth", L("Permission:MenuSystem.GrantedAuth"));
         }
         private static LocalizableString L(string name)
         {

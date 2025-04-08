@@ -7,12 +7,12 @@ namespace Hx.MenuSystem.EntityFrameworkCore
 {
     public class EfCoreMenuRepository(IDbContextProvider<MenuSystemDbContext> dbContextProvider) : EfCoreRepository<MenuSystemDbContext, Menu, Guid>(dbContextProvider), IMenuRepository
     {
-        public async Task<List<Menu>> GetListBySubjectIdAsync(Guid subjectId)
+        public async Task<List<Menu>> GetListBySubjectIdAsync(Guid subjectId, Guid? tenantId)
         {
             var dbContext = await GetDbContextAsync();
             var query = from menu in dbContext.Menus
                         join subjectMenu in dbContext.SubjectMenus on menu.Id equals subjectMenu.MenuId
-                        where subjectMenu.SubjectId == subjectId && menu.IsActive
+                        where subjectMenu.SubjectId == subjectId && menu.IsActive && menu.TenantId == tenantId
                         orderby menu.Order
                         select menu;
 
@@ -47,7 +47,7 @@ namespace Hx.MenuSystem.EntityFrameworkCore
                         where menu.AppName == appName && menu.TenantId == tenantId
                         select menu;
             query = query.WhereIf(!string.IsNullOrEmpty(displayName), d => d.DisplayName.Contains($"{displayName}"));
-            return await query.ToListAsync();
+            return await query.OrderBy(d => d.Order).ToListAsync();
         }
         public async Task<List<Menu>> FindByIdsAsync(Guid[] ids)
         {

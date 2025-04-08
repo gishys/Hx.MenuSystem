@@ -26,12 +26,12 @@ namespace Hx.MenuSystem.Application
         public async Task<List<MenuDto>> GetCurrentUserMenusAsync(bool checkAuth = true)
         {
             var userId = _currentUser.GetId();
-            var menus = await _menuRepository.GetListBySubjectIdAsync(userId);
+            var menus = await _menuRepository.GetListBySubjectIdAsync(userId, CurrentTenant.Id);
             var menuAuths = checkAuth ? await CheckAuthAsync(menus) : menus;
             var menuDtos = ObjectMapper.Map<List<Menu>, List<MenuDto>>(menuAuths);
             return ConvertToMenuTree(menuDtos);
         }
-        [Authorize("MenuSystem")]
+        [Authorize("MenuSystem.List")]
         public async Task<List<MenuDto>> GetMenusByAppNameAsync(string appName, string? displayName = null, bool checkAuth = true)
         {
             var menus = await _menuRepository.FindByAppNameAsync(appName, displayName, CurrentTenant.Id);
@@ -92,23 +92,18 @@ namespace Hx.MenuSystem.Application
         }
         private async Task<List<Menu>> CheckAuthAsync(List<Menu> menus)
         {
-            // 获取权限服务并验证依赖
             var permissionService = _serviceProvider.GetService<IPermissionAppService>()
                 ?? throw new UserFriendlyException("[IPermissionAppService]未注册权限服务！");
-            // 获取当前用户并验证用户状态
             var userId = CurrentUser.Id
                 ?? throw new UserFriendlyException("获取当前登录人失败！");
-            // 并行获取用户权限和角色权限
             var userPermissionNames = await GetGrantedPermissionNamesAsync(permissionService, "U", userId.ToString());
             var grantedPermissions = new HashSet<string>(userPermissionNames);
-            // 并行处理所有角色权限请求
             var rolePermissionTasks = CurrentUser.Roles
                 .Select(role => GetGrantedPermissionNamesAsync(permissionService, "R", role));
             foreach (var rolePermissions in await Task.WhenAll(rolePermissionTasks))
             {
                 grantedPermissions.UnionWith(rolePermissions);
             }
-            // 使用HashSet进行高效权限过滤
             return menus
                 .Where(m => !string.IsNullOrEmpty(m.PermissionName) && grantedPermissions.Contains(m.PermissionName))
                 .ToList();

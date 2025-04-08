@@ -1,9 +1,9 @@
 {
   "culture": "zh-Hans",
   "texts": {
-    "Permission:Menu": "菜单列表",
-    "Permission:MenuSystem": "菜单列表",
-    "Permission:MenuSystem.MenuManagement": "菜单管理",
+    "Permission:MenuSystem": "菜单管理",
+    "Permission:MenuSystem.List": "菜单列表",
+    "Permission:MenuSystem.MenuManagement": "菜单编辑",
     "Permission:MenuSystem.GrantedAuth": "赋予用户"
   }
 }
