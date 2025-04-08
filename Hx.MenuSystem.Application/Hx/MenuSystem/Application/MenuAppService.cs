@@ -26,7 +26,7 @@ namespace Hx.MenuSystem.Application
         public async Task<List<MenuDto>> GetCurrentUserMenusAsync(bool checkAuth = true)
         {
             var userId = _currentUser.GetId();
-            var menus = await _menuRepository.GetListBySubjectIdAsync(userId, CurrentTenant.Id);
+            var menus = await _menuRepository.GetListBySubjectIdAsync(userId.ToString(), CurrentTenant.Id);
             var menuAuths = checkAuth ? await CheckAuthAsync(menus) : menus;
             var menuDtos = ObjectMapper.Map<List<Menu>, List<MenuDto>>(menuAuths);
             return ConvertToMenuTree(menuDtos);
@@ -53,7 +53,7 @@ namespace Hx.MenuSystem.Application
                         await AddOrRemoveMenuUsersAsync(new CreateOrUpdateMenuSubjectDto()
                         {
                             MenuIds = menuId.MenuIds,
-                            SubjectId = new Guid(menuId.SubjectId),
+                            SubjectId = menuId.SubjectId,
                             SubjectType = menuId.SubjectType,
                             IsGranted = true
                         });

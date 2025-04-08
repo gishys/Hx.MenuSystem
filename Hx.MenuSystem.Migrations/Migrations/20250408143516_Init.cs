@@ -39,7 +39,7 @@ namespace Migrations
                 name: "SYS_SUBJECT_MENUS",
                 columns: table => new
                 {
-                    SUBJECT_ID = table.Column<Guid>(type: "uuid", nullable: false),
+                    SUBJECT_ID = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     MENU_ID = table.Column<Guid>(type: "uuid", nullable: false),
                     ORDER = table.Column<double>(type: "double precision", nullable: false),
                     SUBJECTTYPE = table.Column<int>(type: "integer", nullable: false),

@@ -7,7 +7,7 @@ namespace Hx.MenuSystem.EntityFrameworkCore
 {
     public class EfCoreMenuRepository(IDbContextProvider<MenuSystemDbContext> dbContextProvider) : EfCoreRepository<MenuSystemDbContext, Menu, Guid>(dbContextProvider), IMenuRepository
     {
-        public async Task<List<Menu>> GetListBySubjectIdAsync(Guid subjectId, Guid? tenantId)
+        public async Task<List<Menu>> GetListBySubjectIdAsync(string subjectId, Guid? tenantId)
         {
             var dbContext = await GetDbContextAsync();
             var query = from menu in dbContext.Menus

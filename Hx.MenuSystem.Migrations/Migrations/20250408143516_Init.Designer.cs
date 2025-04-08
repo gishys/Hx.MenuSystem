@@ -13,7 +13,7 @@ using Volo.Abp.EntityFrameworkCore;
 namespace Migrations
 {
     [DbContext(typeof(MenuSystemMigrationsContext))]
-    [Migration("20250407025339_Init")]
+    [Migration("20250408143516_Init")]
     partial class Init
     {
         /// <inheritdoc />
@@ -110,8 +110,9 @@ namespace Migrations
 
             modelBuilder.Entity("Hx.MenuSystem.Domain.SubjectMenu", b =>
                 {
-                    b.Property<Guid>("SubjectId")
-                        .HasColumnType("uuid")
+                    b.Property<string>("SubjectId")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("SUBJECT_ID");
 
                     b.Property<Guid>("MenuId")

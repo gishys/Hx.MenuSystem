@@ -27,18 +27,17 @@ namespace Hx.MenuSystem.Application
                 throw new ArgumentNullException(nameof(permissionNames));
             var menus = await _menuRepository.FindByPermissionNamesAsync(permissionNames.ToArray());
             var menuDict = menus.ToDictionary(m => m.PermissionName, m => m);
-            var subjectId = new Guid(providerKey);
             foreach (var permissionDto in input.Permissions)
             {
                 if (!menuDict.TryGetValue(permissionDto.Name, out var menu))
                     continue;
                 if (permissionDto.IsGranted)
                 {
-                    menu.AddOrUpdateSubject(subjectId, providerName.ToSubjectType());
+                    menu.AddOrUpdateSubject(providerKey, providerName.ToSubjectType());
                 }
                 else
                 {
-                    menu.Subjects.RemoveAll(u => u.SubjectId == subjectId);
+                    menu.Subjects.RemoveAll(u => u.SubjectId == providerKey);
                 }
             }
             await _menuRepository.UpdateManyAsync(menus);

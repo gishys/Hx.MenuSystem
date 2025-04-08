@@ -4,7 +4,7 @@
     {
         public bool IsGranted { get; set; }
         public required Guid[] MenuIds { get; set; }
-        public required Guid SubjectId { get; set; }
+        public required string SubjectId { get; set; }
         public required string SubjectType { get; set; }
     }
 }

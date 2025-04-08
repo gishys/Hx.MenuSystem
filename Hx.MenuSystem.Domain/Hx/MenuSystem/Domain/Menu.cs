@@ -106,7 +106,7 @@ namespace Hx.MenuSystem.Domain
         {
             IsActive = isActive;
         }
-        public void AddOrUpdateSubject(Guid subjectId, SubjectType subjectType)
+        public void AddOrUpdateSubject(string subjectId, SubjectType subjectType)
         {
             if (Subjects.Any(u => u.SubjectId == subjectId)) return;
             double maxOrder = Subjects.Count > 0 ? Subjects.Max(u => u.Order) : 0;

@@ -39,7 +39,7 @@ namespace Hx.MenuSystem.EntityFrameworkCore
                 b.HasIndex(x => x.SubjectId);
                 b.HasKey(x => new { x.SubjectId, x.MenuId });
                 b.Property(x => x.MenuId).HasColumnName("MENU_ID");
-                b.Property(x => x.SubjectId).HasColumnName("SUBJECT_ID");
+                b.Property(x => x.SubjectId).IsRequired().HasMaxLength(SubjectMenuConsts.MaxSubjectIdLength).HasColumnName("SUBJECT_ID");
                 b.Property(x => x.Order).HasColumnName("ORDER");
                 b.Property(x => x.SubjectType).HasColumnName("SUBJECTTYPE");
                 b.Property(x => x.CreationTime).HasColumnName("CREATIONTIME").HasColumnType("timestamp without time zone");

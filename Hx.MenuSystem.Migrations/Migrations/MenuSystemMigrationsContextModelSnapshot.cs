@@ -107,8 +107,9 @@ namespace Migrations
 
             modelBuilder.Entity("Hx.MenuSystem.Domain.SubjectMenu", b =>
                 {
-                    b.Property<Guid>("SubjectId")
-                        .HasColumnType("uuid")
+                    b.Property<string>("SubjectId")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("SUBJECT_ID");
 
                     b.Property<Guid>("MenuId")
