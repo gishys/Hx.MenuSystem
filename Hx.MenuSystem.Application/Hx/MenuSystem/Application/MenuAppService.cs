@@ -29,10 +29,21 @@ namespace Hx.MenuSystem.Application
             var menuDtos = ObjectMapper.Map<List<Menu>, List<MenuDto>>(menuAuths);
             return ConvertToMenuTree(menuDtos);
         }
+        /// <summary>
+        /// 获取菜单列表
+        /// </summary>
+        /// <param name="appName">应用名称</param>
+        /// <param name="subjectId">赋予对象Id</param>
+        /// <param name="refreshPermissions">刷新权限</param>
+        /// <param name="type">赋予对象类型</param>
+        /// <param name="displayName">显示名称</param>
+        /// <param name="checkAuth">校验权限</param>
+        /// <returns></returns>
         [Authorize("MenuSystem.List")]
         public async Task<List<MenuDto>> GetMenusByAppNameAsync(
             string appName,
             string subjectId,
+            bool refreshPermissions = false,
             SubjectType type = SubjectType.User,
             string? displayName = null,
             bool checkAuth = true)
@@ -43,13 +54,14 @@ namespace Hx.MenuSystem.Application
             {
                 var (filteredMenus, grantedMenuIds) = await CheckAuthAsync(menuDtos, subjectId, type);
                 menuDtos = filteredMenus;
-                if (grantedMenuIds.Count > 0)
+                if (refreshPermissions && grantedMenuIds.Count > 0)
                 {
-                    var menuSubjectDto = grantedMenuIds.GroupBy(g => new { g.Type, g.Id }).Select(m => new
+                    var menuSubjectDto = grantedMenuIds.GroupBy(g => new { g.Type, g.Id, g.IsGranted }).Select(m => new
                     {
                         MenuIds = m.Select(i => i.MenuId).ToArray(),
                         SubjectId = m.Key.Id,
                         SubjectType = m.Key.Type,
+                        IsTranted = m.Key.IsGranted,
                     });
                     foreach (var menuId in menuSubjectDto)
                     {
@@ -58,7 +70,7 @@ namespace Hx.MenuSystem.Application
                             MenuIds = menuId.MenuIds,
                             SubjectId = menuId.SubjectId,
                             SubjectType = menuId.SubjectType,
-                            IsGranted = true
+                            IsGranted = menuId.IsTranted,
                         });
                     }
                 }
@@ -173,24 +185,22 @@ namespace Hx.MenuSystem.Application
                     ? (menu.Children?.Any(c => c.IsGranted) ?? true)
                     : grantedPermissions.ContainsKey(menu.PermissionName);
 
-                if (menu.IsGranted)
+                if (!string.IsNullOrEmpty(menu.PermissionName))
                 {
-                    if (!string.IsNullOrEmpty(menu.PermissionName))
+                    foreach (var source in grantedPermissions[menu.PermissionName])
                     {
-                        foreach (var source in grantedPermissions[menu.PermissionName])
+                        grantedMenuInfos.Add(new GrantedMenuInfo
                         {
-                            grantedMenuInfos.Add(new GrantedMenuInfo
-                            {
-                                MenuId = menu.Id,
-                                Type = source.Type,
-                                Id = source.Id
-                            });
-                        }
+                            MenuId = menu.Id,
+                            Type = source.Type,
+                            Id = source.Id,
+                            IsGranted = menu.IsGranted,
+                        });
                     }
                 }
             }
             return (menus, grantedMenuInfos
-                .GroupBy(g => new { g.MenuId, g.Type, g.Id })
+                .GroupBy(g => new { g.MenuId, g.Type, g.Id, g.IsGranted })
                 .Select(g => g.First())
                 .ToList());
         }
