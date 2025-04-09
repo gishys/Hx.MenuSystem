@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Entities;
+using Volo.Abp.Identity;
 using Volo.Abp.PermissionManagement;
 using Volo.Abp.Users;
 
@@ -15,30 +16,32 @@ namespace Hx.MenuSystem.Application
     public class MenuAppService(
         IMenuRepository menuRepository,
         MenuManager menuManager,
-        ICurrentUser currentUser,
         IServiceProvider serviceProvider) : ApplicationService, IMenuAppService
     {
         private readonly IMenuRepository _menuRepository = menuRepository;
         private readonly MenuManager _menuManager = menuManager;
-        private readonly ICurrentUser _currentUser = currentUser;
         private readonly IServiceProvider _serviceProvider = serviceProvider;
 
         public async Task<List<MenuDto>> GetCurrentUserMenusAsync(bool checkAuth = true)
         {
-            var userId = _currentUser.GetId();
-            var menus = await _menuRepository.GetListBySubjectIdAsync(userId.ToString(), CurrentTenant.Id);
+            var menus = await _menuRepository.GetListBySubjectIdAsync(CurrentUser.GetId().ToString(), CurrentTenant.Id);
             var menuAuths = checkAuth ? await CheckAuthAsync(menus) : menus;
             var menuDtos = ObjectMapper.Map<List<Menu>, List<MenuDto>>(menuAuths);
             return ConvertToMenuTree(menuDtos);
         }
         [Authorize("MenuSystem.List")]
-        public async Task<List<MenuDto>> GetMenusByAppNameAsync(string appName, string? displayName = null, bool checkAuth = true)
+        public async Task<List<MenuDto>> GetMenusByAppNameAsync(
+            string appName,
+            string subjectId,
+            SubjectType type = SubjectType.User,
+            string? displayName = null,
+            bool checkAuth = true)
         {
             var menus = await _menuRepository.FindByAppNameAsync(appName, displayName, CurrentTenant.Id);
             var menuDtos = ObjectMapper.Map<List<Menu>, List<MenuDto>>(menus);
             if (checkAuth)
             {
-                var (filteredMenus, grantedMenuIds) = await CheckAuthAsync(menuDtos);
+                var (filteredMenus, grantedMenuIds) = await CheckAuthAsync(menuDtos, subjectId, type);
                 menuDtos = filteredMenus;
                 if (grantedMenuIds.Count > 0)
                 {
@@ -66,15 +69,12 @@ namespace Hx.MenuSystem.Application
         [Authorize("MenuSystem.GrantedAuth")]
         public async Task<List<MenuDto>> AddOrRemoveMenuUsersAsync(CreateOrUpdateMenuSubjectDto input)
         {
-            // 获取目标菜单列表并验证存在性
             var menus = await _menuRepository.FindByIdsAsync(input.MenuIds);
             var foundMenuIds = menus.Select(m => m.Id).ToHashSet();
             var missingMenuIds = input.MenuIds.Except(foundMenuIds).ToList();
 
             if (missingMenuIds.Count > 0)
                 throw new EntityNotFoundException($"未找到ID为 {string.Join(", ", missingMenuIds)} 的菜单");
-
-            // 根据操作类型执行添加或移除
             foreach (var menu in menus)
             {
                 if (input.IsGranted)
@@ -82,7 +82,6 @@ namespace Hx.MenuSystem.Application
                 else
                     menu.Subjects.RemoveAll(r => r.SubjectId == input.SubjectId);
             }
-
             await _menuRepository.UpdateManyAsync(menus);
             return ObjectMapper.Map<List<Menu>, List<MenuDto>>(menus);
         }
@@ -99,8 +98,7 @@ namespace Hx.MenuSystem.Application
         {
             var permissionService = _serviceProvider.GetService<IPermissionAppService>()
                 ?? throw new UserFriendlyException("[IPermissionAppService]未注册权限服务！");
-            var userId = CurrentUser.Id
-                ?? throw new UserFriendlyException("获取当前登录人失败！");
+            var userId = CurrentUser.Id?? throw new UserFriendlyException("获取当前登录人失败！");
             var userPermissionNames = await GetGrantedPermissionNamesAsync(permissionService, "U", userId.ToString());
             var grantedPermissions = new HashSet<string>(userPermissionNames);
             var rolePermissionTasks = CurrentUser.Roles.Select(role => GetGrantedPermissionNamesAsync(permissionService, "R", role));
@@ -124,26 +122,41 @@ namespace Hx.MenuSystem.Application
                 .Select(p => p.Name)
                 .Distinct();
         }
-        private async Task<(List<MenuDto> FilteredMenus, List<GrantedMenuInfo> GrantedMenuInfos)> CheckAuthAsync(List<MenuDto> menus)
+        private async Task<(List<MenuDto> FilteredMenus, List<GrantedMenuInfo> GrantedMenuInfos)> CheckAuthAsync(List<MenuDto> menus, string subjectId, SubjectType type)
         {
             var permissionService = _serviceProvider.GetService<IPermissionAppService>()
                 ?? throw new UserFriendlyException("[IPermissionAppService]未注册权限服务！");
-            var userId = CurrentUser.Id ?? throw new UserFriendlyException("获取当前登录人失败！");
-            var userGranted = await GetGrantedPermissionsAsync(permissionService, "U", userId.ToString());
+            var userManager = _serviceProvider.GetService<IdentityUserManager>()
+                ?? throw new UserFriendlyException("[IdentityUserManager]未注册用户管理服务！");
             var grantedPermissions = new Dictionary<string, List<GrantedSource>>();
-            foreach (var perm in userGranted)
+            IList<string> roles;
+            if (type == SubjectType.User)
             {
-                if (!grantedPermissions.ContainsKey(perm.Name))
-                    grantedPermissions[perm.Name] = new List<GrantedSource>();
-                grantedPermissions[perm.Name].Add(new GrantedSource { Type = "U", Id = userId.ToString() });
+                var user = await userManager.FindByIdAsync(subjectId) ?? throw new UserFriendlyException($"Id为[{subjectId}]的用户不存在！");
+                roles = await userManager.GetRolesAsync(user);
+                var userGranted = await GetGrantedPermissionsAsync(permissionService, "U", subjectId);
+                foreach (var perm in userGranted)
+                {
+                    if (!grantedPermissions.ContainsKey(perm.Name))
+                        grantedPermissions[perm.Name] = [];
+                    grantedPermissions[perm.Name].Add(new GrantedSource { Type = "U", Id = subjectId });
+                }
             }
-            var rolePermissionTasks = CurrentUser.Roles.Select(role => GetGrantedPermissionsAsync(permissionService, "R", role));
+            else if (type == SubjectType.Role)
+            {
+                roles = [subjectId];
+            }
+            else
+            {
+                roles = [];
+            }
+            var rolePermissionTasks = roles.Select(role => GetGrantedPermissionsAsync(permissionService, "R", role));
             foreach (var rolePermissions in await Task.WhenAll(rolePermissionTasks))
             {
                 foreach (var perm in rolePermissions)
                 {
                     if (!grantedPermissions.ContainsKey(perm.Name))
-                        grantedPermissions[perm.Name] = new List<GrantedSource>();
+                        grantedPermissions[perm.Name] = [];
                     grantedPermissions[perm.Name].Add(new GrantedSource { Type = "R", Id = perm.Id });
                 }
             }
@@ -152,7 +165,7 @@ namespace Hx.MenuSystem.Application
             {
                 if (menu.Children != null && menu.Children.Count > 0)
                 {
-                    var (filteredChildren, childGranted) = await CheckAuthAsync(menu.Children);
+                    var (filteredChildren, childGranted) = await CheckAuthAsync(menu.Children, subjectId, type);
                     menu.Children = filteredChildren;
                     grantedMenuInfos.AddRange(childGranted);
                 }

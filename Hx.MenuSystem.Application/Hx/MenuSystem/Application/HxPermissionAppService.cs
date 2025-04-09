@@ -22,10 +22,10 @@ namespace Hx.MenuSystem.Application
         private readonly IMenuRepository _menuRepository = menuRepository;
         public override async Task UpdateAsync(string providerName, string providerKey, UpdatePermissionsDto input)
         {
-            var permissionNames = input.Permissions.Select(p => p.Name).Distinct().ToList();
-            if (permissionNames == null)
+            List<string> permissionNames = input.Permissions.Select(p => p.Name).Distinct().ToList();
+            if (permissionNames.Count == 0)
                 throw new ArgumentNullException(nameof(permissionNames));
-            var menus = await _menuRepository.FindByPermissionNamesAsync(permissionNames.ToArray());
+            var menus = await _menuRepository.FindByPermissionNamesAsync([.. permissionNames]);
             var menuDict = menus.ToDictionary(m => m.PermissionName, m => m);
             foreach (var permissionDto in input.Permissions)
             {
