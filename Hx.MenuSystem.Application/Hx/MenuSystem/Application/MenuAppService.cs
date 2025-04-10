@@ -184,11 +184,20 @@ namespace Hx.MenuSystem.Application
                 menu.IsGranted = string.IsNullOrEmpty(menu.PermissionName)
                     ? (menu.Children?.Any(c => c.IsGranted) ?? true)
                     : grantedPermissions.ContainsKey(menu.PermissionName);
-
                 if (!string.IsNullOrEmpty(menu.PermissionName))
                 {
-                    foreach (var source in grantedPermissions[menu.PermissionName])
+                    foreach (var source in grantedPermissions[menu.PermissionName].OrderBy(d => d.Type))
                     {
+                        if (menu.IsGranted)
+                        {
+                            menu.Subjects ??= [];
+                            menu.Subjects.Add(new SubjectMenuDto()
+                            {
+                                SubjectId = source.Id,
+                                MenuId = menu.Id,
+                                SubjectType = source.Type.ToSubjectType()
+                            });
+                        }
                         grantedMenuInfos.Add(new GrantedMenuInfo
                         {
                             MenuId = menu.Id,

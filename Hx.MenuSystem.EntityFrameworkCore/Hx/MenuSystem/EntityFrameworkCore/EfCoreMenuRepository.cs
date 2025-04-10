@@ -46,7 +46,7 @@ namespace Hx.MenuSystem.EntityFrameworkCore
             var query = from menu in dbContext.Menus
                         where menu.AppName == appName && menu.TenantId == tenantId
                         select menu;
-            query = query.Include(m => m.Subjects).WhereIf(!string.IsNullOrEmpty(displayName), d => d.DisplayName.Contains($"{displayName}"));
+            query = query.WhereIf(!string.IsNullOrEmpty(displayName), d => d.DisplayName.Contains($"{displayName}"));
             return await query.OrderBy(d => d.Order).ToListAsync();
         }
         public async Task<List<Menu>> FindByIdsAsync(Guid[] ids)
