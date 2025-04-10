@@ -184,9 +184,9 @@ namespace Hx.MenuSystem.Application
                 menu.IsGranted = string.IsNullOrEmpty(menu.PermissionName)
                     ? (menu.Children?.Any(c => c.IsGranted) ?? true)
                     : grantedPermissions.ContainsKey(menu.PermissionName);
-                if (!string.IsNullOrEmpty(menu.PermissionName))
+                if ((!string.IsNullOrEmpty(menu.PermissionName)) && grantedPermissions.TryGetValue(menu.PermissionName, out List<GrantedSource>? value))
                 {
-                    foreach (var source in grantedPermissions[menu.PermissionName].OrderBy(d => d.Type))
+                    foreach (var source in value.OrderBy(d => d.Type))
                     {
                         if (menu.IsGranted)
                         {

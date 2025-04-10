@@ -38,8 +38,8 @@ namespace Hx.MenuSystem.Domain
         // 导航属性
         public virtual ICollection<SubjectMenu> Subjects { get; set; } = new List<SubjectMenu>();
 
+#pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
         private Menu() { }
-
         public Menu(
             Guid id,
             string name,
@@ -65,7 +65,7 @@ namespace Hx.MenuSystem.Domain
             IsActive = isActive;
             Order = order;
         }
-
+#pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
         public void SetName(string name)
         {
             Name = Check.NotNullOrWhiteSpace(name, nameof(name));
