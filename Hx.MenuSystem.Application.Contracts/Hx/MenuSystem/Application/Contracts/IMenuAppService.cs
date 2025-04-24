@@ -21,14 +21,7 @@ namespace Hx.MenuSystem.Application.Contracts
             SubjectType type = SubjectType.User,
             string? displayName = null,
             bool checkAuth = true);
-        /// <summary>
-        /// 获取菜单列表
-        /// </summary>
-        /// <param name="appName"></param>
-        /// <param name="userId"></param>
-        /// <returns></returns>
-        /// <exception cref="UserFriendlyException"></exception>
-        Task<MenuAndAuthDto> GetMenuAndAuthByAppNameAsync(string appName, string userId);
+        Task<MenuAndAuthDto> GetCurrentUserMenusAndAuthAsync(bool checkAuth = true);
         Task<List<MenuDto>> GetCurrentUserMenusAsync(bool checkAuth = false);
         Task<MenuDto> CreateAsync(CreateOrUpdateMenuDto input);
         Task<List<MenuDto>> AddOrRemoveMenuUsersAsync(CreateOrUpdateMenuSubjectDto input);
