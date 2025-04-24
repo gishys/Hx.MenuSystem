@@ -29,28 +29,29 @@ namespace Hx.MenuSystem.Application
             var menuDtos = ObjectMapper.Map<List<Menu>, List<MenuDto>>(menuAuths);
             return ConvertToMenuTree(menuDtos);
         }
-        public async Task<MenuAndAuthDto> GetCurrentUserMenusAndAuthAsync(bool checkAuth = true)
+        public async Task<MenuAndAuthDto> GetCurrentUserMenusAndAuthAsync(string appName, bool checkAuth = true)
         {
             var userId = CurrentUser.GetId().ToString();
-            var menus = await _menuRepository.GetListBySubjectIdAsync(userId, CurrentTenant.Id);
+            var menus = await _menuRepository.FindByAppNameAsync(appName, null, CurrentTenant.Id);
             var menuAuths = checkAuth ? await CheckAuthAsync(menus) : menus;
             var menuDtos = ObjectMapper.Map<List<Menu>, List<MenuDto>>(menuAuths);
             menuDtos = ConvertToMenuTree(menuDtos);
             var permissionService = _serviceProvider.GetService<IPermissionAppService>() ?? throw new UserFriendlyException("[IPermissionAppService]未注册权限服务！");
-            var userPermissionTask = permissionService.GetAsync("U", userId);
-            var rolePermissionTasks = CurrentUser.Roles
-                .Select(role => permissionService.GetAsync("R", role))
-                .ToList();
-            var allTasks = rolePermissionTasks.Prepend(userPermissionTask).ToList();
-            await Task.WhenAll(allTasks);
-            var allPermissions = allTasks
-                .Select(t => t.Result)
-                .SelectMany(p => p.Groups)
-                .SelectMany(g => g.Permissions)
-                .Where(p => p.IsGranted)
-                .Distinct()
-                .ToList();
-            return new MenuAndAuthDto { Menus = menuDtos, Auths = allPermissions };
+            var permissionSet = new HashSet<PermissionGrantInfoDto>();
+            var permission = await permissionService.GetAsync("U", userId);
+            foreach (var item in permission.Groups.SelectMany(group => group.Permissions.Where(p => p.IsGranted)).ToList())
+            {
+                permissionSet.Add(item);
+            };
+            foreach (var role in CurrentUser.Roles)
+            {
+                var rolePermission = await permissionService.GetAsync("R", role);
+                foreach (var item in rolePermission.Groups.SelectMany(roleGroup => roleGroup.Permissions.Where(p => p.IsGranted)).ToList())
+                {
+                    permissionSet.Add(item);
+                }
+            }
+            return new MenuAndAuthDto { Menus = menuDtos, Auths = [.. permissionSet] };
         }
         /// <summary>
         /// 获取菜单列表
