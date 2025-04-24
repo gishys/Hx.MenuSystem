@@ -78,6 +78,36 @@ namespace Hx.MenuSystem.Application
             menuDtos = ConvertToMenuTree(menuDtos);
             return menuDtos;
         }
+        /// <summary>
+        /// 获取菜单列表
+        /// </summary>
+        /// <param name="appName"></param>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        /// <exception cref="UserFriendlyException"></exception>
+        [Authorize("MenuSystem.List")]
+        public async Task<MenuAndAuthDto> GetMenuAndAuthByAppNameAsync(string appName, string userId)
+        {
+            var menus = await _menuRepository.FindByAppNameAsync(appName, null, CurrentTenant.Id);
+            var menuDtos = ObjectMapper.Map<List<Menu>, List<MenuDto>>(menus);
+            var (filteredMenus, _) = await CheckAuthAsync(menuDtos, userId.ToString(), SubjectType.User);
+
+            var permissionService = _serviceProvider.GetService<IPermissionAppService>() ?? throw new UserFriendlyException("[IPermissionAppService]未注册权限服务！");
+            var userPermissionTask = permissionService.GetAsync("U", userId);
+            var rolePermissionTasks = CurrentUser.Roles
+                .Select(role => permissionService.GetAsync("R", role))
+                .ToList();
+            var allTasks = rolePermissionTasks.Prepend(userPermissionTask).ToList();
+            await Task.WhenAll(allTasks);
+            var allPermissions = allTasks
+                .Select(t => t.Result)
+                .SelectMany(p => p.Groups)
+                .SelectMany(g => g.Permissions)
+                .Where(p => p.IsGranted)
+                .Distinct()
+                .ToList();
+            return new MenuAndAuthDto { Menus = filteredMenus, Auths = allPermissions };
+        }
         [Authorize("MenuSystem.GrantedAuth")]
         public async Task<List<MenuDto>> AddOrRemoveMenuUsersAsync(CreateOrUpdateMenuSubjectDto input)
         {
@@ -110,7 +140,7 @@ namespace Hx.MenuSystem.Application
         {
             var permissionService = _serviceProvider.GetService<IPermissionAppService>()
                 ?? throw new UserFriendlyException("[IPermissionAppService]未注册权限服务！");
-            var userId = CurrentUser.Id?? throw new UserFriendlyException("获取当前登录人失败！");
+            var userId = CurrentUser.Id ?? throw new UserFriendlyException("获取当前登录人失败！");
             var userPermissionNames = await GetGrantedPermissionNamesAsync(permissionService, "U", userId.ToString());
             var grantedPermissions = new HashSet<string>(userPermissionNames);
             var rolePermissionTasks = CurrentUser.Roles.Select(role => GetGrantedPermissionNamesAsync(permissionService, "R", role));
