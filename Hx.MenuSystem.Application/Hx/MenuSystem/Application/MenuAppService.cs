@@ -14,10 +14,12 @@ namespace Hx.MenuSystem.Application
 {
     [Authorize]
     public class MenuAppService(
+        IPermissionGrantRepository permissionGrant,
         IMenuRepository menuRepository,
         MenuManager menuManager,
         IServiceProvider serviceProvider) : ApplicationService, IMenuAppService
     {
+        private readonly IPermissionGrantRepository _permissionGrant = permissionGrant;
         private readonly IMenuRepository _menuRepository = menuRepository;
         private readonly MenuManager _menuManager = menuManager;
         private readonly IServiceProvider _serviceProvider = serviceProvider;
@@ -33,25 +35,29 @@ namespace Hx.MenuSystem.Application
         {
             var userId = CurrentUser.GetId().ToString();
             var menus = await _menuRepository.FindByAppNameAsync(appName, null, CurrentTenant.Id);
-            var menuAuths = checkAuth ? await CheckAuthAsync(menus) : menus;
+            var permissionSet = new HashSet<PermissionGrantInfoDto>();
+            var grantedPermissions = await GetPermissionNamesByUserIdAsync(userId.ToString());
+            foreach (var p in grantedPermissions)
+            {
+                permissionSet.Add(new PermissionGrantInfoDto() { Name = p, IsGranted = true });
+            }
+            var menuAuths = checkAuth ?
+                menus.Where(m => !string.IsNullOrEmpty(m.PermissionName) && grantedPermissions.Contains(m.PermissionName)).ToList()
+                : menus;
             var menuDtos = ObjectMapper.Map<List<Menu>, List<MenuDto>>(menuAuths);
             menuDtos = ConvertToMenuTree(menuDtos);
-            var permissionService = _serviceProvider.GetService<IPermissionAppService>() ?? throw new UserFriendlyException("[IPermissionAppService]未注册权限服务！");
-            var permissionSet = new HashSet<PermissionGrantInfoDto>();
-            var permission = await permissionService.GetAsync("U", userId);
-            foreach (var item in permission.Groups.SelectMany(group => group.Permissions.Where(p => p.IsGranted)).ToList())
-            {
-                permissionSet.Add(item);
-            };
-            foreach (var role in CurrentUser.Roles)
-            {
-                var rolePermission = await permissionService.GetAsync("R", role);
-                foreach (var item in rolePermission.Groups.SelectMany(roleGroup => roleGroup.Permissions.Where(p => p.IsGranted)).ToList())
-                {
-                    permissionSet.Add(item);
-                }
-            }
             return new MenuAndAuthDto { Menus = menuDtos, Auths = [.. permissionSet] };
+        }
+        private async Task<IEnumerable<string>> GetPermissionNamesByUserIdAsync(string userId)
+        {
+            var userPermissionNames = await GetGrantedPermissionNamesAsync(_permissionGrant, "U", userId);
+            var grantedPermissions = new HashSet<string>(userPermissionNames);
+            var rolePermissionTasks = CurrentUser.Roles.Select(role => GetGrantedPermissionNamesAsync(_permissionGrant, "R", role));
+            foreach (var rolePermissions in await Task.WhenAll(rolePermissionTasks))
+            {
+                grantedPermissions.UnionWith(rolePermissions);
+            }
+            return grantedPermissions;
         }
         /// <summary>
         /// 获取菜单列表
@@ -110,7 +116,7 @@ namespace Hx.MenuSystem.Application
             var missingMenuIds = input.MenuIds.Except(foundMenuIds).ToList();
 
             if (missingMenuIds.Count > 0)
-                throw new EntityNotFoundException($"未找到ID为 {string.Join(", ", missingMenuIds)} 的菜单");
+                throw new UserFriendlyException(message: $"未找到ID为 {string.Join(", ", missingMenuIds)} 的菜单");
             foreach (var menu in menus)
             {
                 if (input.IsGranted)
@@ -132,43 +138,31 @@ namespace Hx.MenuSystem.Application
         }
         private async Task<List<Menu>> CheckAuthAsync(List<Menu> menus)
         {
-            var permissionService = _serviceProvider.GetService<IPermissionAppService>()
-                ?? throw new UserFriendlyException("[IPermissionAppService]未注册权限服务！");
-            var userId = CurrentUser.Id ?? throw new UserFriendlyException("获取当前登录人失败！");
-            var userPermissionNames = await GetGrantedPermissionNamesAsync(permissionService, "U", userId.ToString());
-            var grantedPermissions = new HashSet<string>(userPermissionNames);
-            var rolePermissionTasks = CurrentUser.Roles.Select(role => GetGrantedPermissionNamesAsync(permissionService, "R", role));
-            foreach (var rolePermissions in await Task.WhenAll(rolePermissionTasks))
-            {
-                grantedPermissions.UnionWith(rolePermissions);
-            }
+            var userId = CurrentUser.Id ?? throw new UserFriendlyException(message: "获取当前登录人失败！");
+            var grantedPermissions = await GetPermissionNamesByUserIdAsync(userId.ToString());
             return menus
                 .Where(m => !string.IsNullOrEmpty(m.PermissionName) && grantedPermissions.Contains(m.PermissionName))
                 .ToList();
         }
         private static async Task<IEnumerable<string>> GetGrantedPermissionNamesAsync(
-            IPermissionAppService permissionService,
+            IPermissionGrantRepository permissionGrant,
             string type,
             string id)
         {
-            var permission = await permissionService.GetAsync(type, id);
-            return permission.Groups
-                .SelectMany(g => g.Permissions)
-                .Where(p => p.IsGranted)
-                .Select(p => p.Name)
-                .Distinct();
+            var permission = await permissionGrant.GetListAsync(type, id);
+            return permission.Select(p => p.Name).Distinct();
         }
         private async Task<(List<MenuDto> FilteredMenus, List<GrantedMenuInfo> GrantedMenuInfos)> CheckAuthAsync(List<MenuDto> menus, string subjectId, SubjectType type)
         {
             var permissionService = _serviceProvider.GetService<IPermissionAppService>()
-                ?? throw new UserFriendlyException("[IPermissionAppService]未注册权限服务！");
+                ?? throw new UserFriendlyException(message: "[IPermissionAppService]未注册权限服务！");
             var userManager = _serviceProvider.GetService<IdentityUserManager>()
-                ?? throw new UserFriendlyException("[IdentityUserManager]未注册用户管理服务！");
+                ?? throw new UserFriendlyException(message: "[IdentityUserManager]未注册用户管理服务！");
             var grantedPermissions = new Dictionary<string, List<GrantedSource>>();
             IList<string> roles;
             if (type == SubjectType.User)
             {
-                var user = await userManager.FindByIdAsync(subjectId) ?? throw new UserFriendlyException($"Id为[{subjectId}]的用户不存在！");
+                var user = await userManager.FindByIdAsync(subjectId) ?? throw new UserFriendlyException(message: $"Id为[{subjectId}]的用户不存在！");
                 roles = await userManager.GetRolesAsync(user);
                 var userGranted = await GetGrantedPermissionsAsync(permissionService, "U", subjectId);
                 foreach (var perm in userGranted)

@@ -3,9 +3,9 @@ using Volo.Abp.Application.Services;
 
 namespace Hx.MenuSystem.Application
 {
-    public class BaseAppService : ApplicationService
+    public class MenuBaseAppService : ApplicationService
     {
-        protected BaseAppService()
+        protected MenuBaseAppService()
         {
             LocalizationResource = typeof(MenuResource);
         }

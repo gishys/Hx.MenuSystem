@@ -1,6 +1,7 @@
 ﻿using Hx.MenuSystem.Domain;
 using Hx.MenuSystem.Domain.Shared;
 using Microsoft.Extensions.Options;
+using Volo.Abp;
 using Volo.Abp.Authorization.Permissions;
 using Volo.Abp.PermissionManagement;
 using Volo.Abp.SimpleStateChecking;
@@ -24,7 +25,7 @@ namespace Hx.MenuSystem.Application
         {
             List<string> permissionNames = input.Permissions.Select(p => p.Name).Distinct().ToList();
             if (permissionNames.Count == 0)
-                throw new ArgumentNullException(nameof(input), "没有有效的权限名称！");
+                throw new UserFriendlyException(message: "没有有效的权限名称！");
             var menus = await _menuRepository.FindByPermissionNamesAsync([.. permissionNames]);
             var menuDict = menus.ToDictionary(m => m.PermissionName, m => m);
             foreach (var permissionDto in input.Permissions)
