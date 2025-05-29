@@ -19,7 +19,7 @@ namespace Hx.MenuSystem.Application
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddAutoMapperObjectMapper<MenuSystemApplicationModule>();
-            context.Services.AddTransient<IPermissionAppService, HxPermissionAppService>();
+            //context.Services.AddTransient<IPermissionAppService, HxPermissionAppService>();
             Configure<AbpAutoMapperOptions>(options =>
             {
                 options.AddProfile<MenuSystemProfile>(validate: true);
